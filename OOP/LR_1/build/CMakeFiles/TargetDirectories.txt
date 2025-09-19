@@ -1,0 +1,3 @@
+C:/Users/gievs/Desktop/Prog/2 sem/OOP/LR_1/build/CMakeFiles/remove_vowels.dir
+C:/Users/gievs/Desktop/Prog/2 sem/OOP/LR_1/build/CMakeFiles/edit_cache.dir
+C:/Users/gievs/Desktop/Prog/2 sem/OOP/LR_1/build/CMakeFiles/rebuild_cache.dir

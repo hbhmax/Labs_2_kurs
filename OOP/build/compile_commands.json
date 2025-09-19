@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/gievs/Desktop/Prog/2 sem/OOP/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe   -g -o CMakeFiles\\remove_vowels.dir\\main.cpp.obj -c \"C:\\Users\\gievs\\Desktop\\Prog\\2 sem\\OOP\\LR_1\\main.cpp\"",
+  "file": "C:/Users/gievs/Desktop/Prog/2 sem/OOP/LR_1/main.cpp",
+  "output": "CMakeFiles/remove_vowels.dir/main.cpp.obj"
+}
+]
