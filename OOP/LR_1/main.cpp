@@ -6,7 +6,7 @@ int main()
 {
   std::string str;
 
-  std::cin >> str;
+  std::getline(std::cin, str);
 
   std::cout << "result: " << removeVowels(str) << std::endl;
 
