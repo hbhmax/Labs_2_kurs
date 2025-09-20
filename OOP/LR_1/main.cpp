@@ -1,29 +1,14 @@
 #include <iostream>
 #include <string>
+#include "include/removeVowels.h"
 
+int main()
+{
+  std::string str;
 
-int main(int argc, char * argv[]){
+  std::cin >> str;
 
-    std::string glasnye = "aeiou";
+  std::cout << "result: " << removeVowels(str) << std::endl;
 
-    std::string s;
-    std::getline(std::cin, s);
-
-    int flag = 0;
-
-    for(int i = 0; i < std::size(s); i++){
-        for(int j = 0; j < 5; j++){
-            if(tolower(s[i]) == glasnye[j]){
-                flag = 1;
-                break;
-            }
-        }
-        if(flag == 1){
-            flag = 0;
-            continue;
-        }
-        std::cout << s[i];
-    }
-
-    return 0;
+  return 0;
 }
