@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     int x = atoi(argv[1]);
     char *flag = argv[2];
 
-    if(flag[0] == '-'){
+    if(flag[0] == '-' || flag[0] == '/'){
         switch (flag[1]){
 
             case 'h':
