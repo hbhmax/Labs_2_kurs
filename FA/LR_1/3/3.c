@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     if (argc <= 2) {
         printf("Usage: %s <flag> <...>\n", argv[0]);
-        return 1;
+        return -1;
     }
 
     char *flag = argv[1];
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
                 }
 
             }else{
-                printf("When using flag '-t', you need to enter 4 real numbers");
+                printf("When using flag '-t', you need to enter 4 real more than zero numbers");
             }
             break;
         
