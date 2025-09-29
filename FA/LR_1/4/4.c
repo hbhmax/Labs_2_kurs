@@ -2,14 +2,13 @@
 #include <math.h>
 #include <stdbool.h>
 
-#define MAX_ITER 10000
+#define MAX_ITER 10000000
 
-double factorial(int n) {
-    double result = 1.0;
-    for (int i = 2; i <= n; i++) {
-        result *= i;
+double factorial(int n){
+    if(n == 1 || n == 0){
+        return 1;
     }
-    return result;
+    return n * factorial(n - 1);
 }
 
 double power(double base, int exp) {
@@ -34,8 +33,7 @@ bool is_prime(int n) {
 }
 
 
-
-
+//---------------------------------------------------------------------------
 
 double e_limit(double epsilon) {
     double n = 1.0;
@@ -59,7 +57,7 @@ double e_series(double epsilon) {
     double term = 1.0;
     
     for (int n = 1; n < MAX_ITER; n++) {
-        term /= n;
+        term = 1 / factorial(n);
         sum += term;
         
         if (term < epsilon) {
@@ -86,12 +84,14 @@ double e_equation(double epsilon) {
     return x;
 }
 
+//---------------------------------------------------------------------------
+
 double pi_limit(double epsilon) {
     double n = 1.0;
     double prev = 0.0;
     double current = 4.0;
     
-    for (int i = 0; i < MAX_ITER; i++) {
+    for (int i = 0; i < 47; i++) {
         prev = current;
         n += 1.0;
         
@@ -143,6 +143,8 @@ double pi_equation(double epsilon) {
     }
     return x;
 }
+
+//---------------------------------------------------------------------------
 
 double ln2_limit(double epsilon) {
     double n = 1.0;
@@ -199,6 +201,8 @@ double ln2_equation(double epsilon) {
     return x;
 }
 
+//---------------------------------------------------------------------------
+
 double sqrt2_limit(double epsilon) {
     double x = -0.5;
     double prev_x;
@@ -216,12 +220,12 @@ double sqrt2_limit(double epsilon) {
 
 double sqrt2_series(double epsilon) {
     double product = 1.0;
-    double factor;
+    double term;
     double prev_product = 0.0;
     
     for (int k = 2; k < MAX_ITER; k++) {
-        factor = pow(2.0, pow(2.0, -k));
-        product *= factor;
+        term = pow(2.0, pow(2.0, -k));
+        product *= term;
         
         if (fabs(product - prev_product) < epsilon) {
             return product;
@@ -248,31 +252,29 @@ double sqrt2_equation(double epsilon) {
     return x;
 }
 
+//---------------------------------------------------------------------------
+
 double gamma_limit(double epsilon) {
-    double m = 1.0;
     double prev = 0.0;
     double current = 0.0;
     
-    for (int i = 0; i < MAX_ITER; i++) {
-
+    for (int m = 1; m < 48; m++) {
         double sum = 0.0;
-        double term;
         
         for (int k = 1; k <= m; k++) {
-            term = log(factorial(k)) * factorial(m)/(factorial(k) * factorial(m - k) * k);
-
-            if(k % 2 == 1){
-                term *= -1;
-            }
+            double binom = factorial(m) / (factorial(k) * factorial(m - k));
+            double term = binom * log(factorial(k)) / k;
             
+            if (k % 2 == 1) {
+                term = -term;
+            }
             sum += term;
         }
 
         prev = current;
-        m += 1.0;
         current = sum;
         
-        if (fabs(current - prev) < epsilon) {
+        if (m > 1 && fabs(current - prev) < epsilon) {
             return current;
         }
     }
@@ -280,49 +282,42 @@ double gamma_limit(double epsilon) {
 }
 
 double gamma_series(double epsilon) {
-    double pi = pi_series(epsilon);
+    double pi = pi_equation(epsilon);
     double sum = 0.0;
     double term;
     
     for (int k = 2; k < MAX_ITER; k++) {
-        term = (1.0 / pow(sqrt(k), 2)) - (1.0 / k);
+        int floor_sqrt_k = (int)sqrt(k);
+        term = (1.0 / (floor_sqrt_k * floor_sqrt_k)) - (1.0 / k);
         sum += term;
-        
-        if (fabs(term) < epsilon) {
-            return -pi * pi / 6.0 + sum;
-        }
     }
-    return -pi * pi / 6.0 + sum;
+    return (-(pi * pi) / 6.0) + sum;
 }
 
-// double gamma_equation(double epsilon) {
-//     double product = 1.0;
-//     double prev_product = 0.0;
-//     int t = 2;
+double gamma_equation(double epsilon) {
+    double product = 1.0;
+    double prev_current = 0.0;
+    int prev_t = 1;
     
-//     for (int iteration = 0; iteration < MAX_ITER; iteration++) {
-//         product = 1.0;
-//         int prime_count = 0;
+    for (int t = 2; t <= MAX_ITER; t *= 2) {
+        for (int p = prev_t + 1; p <= t; p++) {
+            if (is_prime(p)) {
+                product *= (p - 1.0) / p;
+            }
+        }
         
-//         for (int p = 2; p <= t; p++) {
-//             if (is_prime(p)) {
-//                 product *= (p - 1.0) / p;
-//                 prime_count++;
-//             }
-//         }
+        double current = log(t) * product;
         
-//         double current = log(t) * product;
+        if (prev_t > 1 && fabs(current - prev_current) < epsilon) {
+            return -log(current);
+        }
         
-//         if (iteration > 0 && fabs(current - prev_product) < epsilon) {
-//             return -log(current);
-//         }
-        
-//         prev_product = current;
-//         t *= 2;
-//     }
+        prev_current = current;
+        prev_t = t;
+    }
     
-//     return -log(prev_product);
-// }
+    return -log(prev_current);
+}
 
 int main() {
     double epsilon = pow(10, -6);
@@ -345,7 +340,7 @@ int main() {
     
     printf("y = %.6f (limit)\n", gamma_limit(epsilon));
     printf("y = %.6f (series)\n", gamma_series(epsilon));
-    // printf("y = %.6f (equation)\n", gamma_equation(epsilon));
+    printf("y = %.6f (equation)\n", gamma_equation(epsilon));
     
     return 0;
 }
