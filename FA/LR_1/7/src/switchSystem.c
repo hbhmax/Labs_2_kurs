@@ -59,9 +59,15 @@ void switchSystem(FILE *inputFile, FILE *outputFile) {
                     ptr++;
                 }
                 
-                int base = (max_digit < 2) ? 2 : (max_digit + 1);
+                int base = max_digit;
+
+                if (base < 2){
+                    base = 2;
+                }else{
+                    base++;
+                }
                 
-                long long decimal_val = 0;
+                int decimal_val = 0;
                 ptr = cleaned;
                 while (*ptr) {
                     int val = digit_value(*ptr);
@@ -74,9 +80,9 @@ void switchSystem(FILE *inputFile, FILE *outputFile) {
                 }
                 
                 if (is_negative && strcmp(cleaned, "0") != 0) {
-                    fprintf(outputFile, "-%s %d %lld\n", cleaned, base, decimal_val);
+                    fprintf(outputFile, "-%s %d %d\n", cleaned, base, decimal_val);
                 } else {
-                    fprintf(outputFile, "%s %d %lld\n", cleaned, base, decimal_val);
+                    fprintf(outputFile, "%s %d %d\n", cleaned, base, decimal_val);
                 }
                 
                 i = 0;
@@ -93,55 +99,5 @@ void switchSystem(FILE *inputFile, FILE *outputFile) {
         }
     }
     
-    if (i != 0) {
-        number[i] = '\0';
-        
-        char *cleaned = number;
-        is_negative = 0;
-        
-        if (*cleaned == '-') {
-            is_negative = 1;
-            cleaned++;
-        }
-        
-        while (*cleaned == '0' && *(cleaned + 1) != '\0') {
-            cleaned++;
-        }
-        
-        if (*cleaned == '\0') {
-            cleaned = "0";
-            is_negative = 0;
-        }
-        
-        int max_digit = 0;
-        char *ptr = cleaned;
-        while (*ptr) {
-            int val = digit_value(*ptr);
-            if (val > max_digit) {
-                max_digit = val;
-            }
-            ptr++;
-        }
-        
-        int base = (max_digit < 2) ? 2 : (max_digit + 1);
-        
-        long long decimal_val = 0;
-        ptr = cleaned;
-        while (*ptr) {
-            int val = digit_value(*ptr);
-            decimal_val = decimal_val * base + val;
-            ptr++;
-        }
-        
-        if (is_negative) {
-            decimal_val = -decimal_val;
-        }
-        
-        if (is_negative && strcmp(cleaned, "0") != 0) {
-            fprintf(outputFile, "-%s %d %lld\n", cleaned, base, decimal_val);
-        } else {
-            fprintf(outputFile, "%s %d %lld\n", cleaned, base, decimal_val);
-        }
-    }
     free(number);
 }
