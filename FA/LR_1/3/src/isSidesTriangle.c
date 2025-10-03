@@ -4,19 +4,19 @@
 #include <stdlib.h>
 
 int isSidesTriangle(double a, double b, double c, double epsilon) {
-    if((a < 0) || (b < 0) || (c < 0)){
+    if((a < epsilon) || (b < epsilon) || (c < epsilon)){
         return -1;
     }
 
     double temp;
 
-    if(b > c){
+    if(b - c > epsilon){
         temp = b;
         b = c;
         c = temp;
     }
 
-    if(a > c){
+    if(a - c > epsilon){
         temp = a;
         a = c;
         c = temp;

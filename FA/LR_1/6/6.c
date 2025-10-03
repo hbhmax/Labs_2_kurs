@@ -1,88 +1,142 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 
-#define MINIMAL_EPSILON 0.0000001
-
-double integral_1(double epsilon){
-
-    double summa = 0;
-
-    if (epsilon < MINIMAL_EPSILON){
-        epsilon = MINIMAL_EPSILON;
-    }
-
-    for(double i = epsilon; i <= 1 - epsilon; i += epsilon){
-        summa += log(1 + i) / i;
-    }
-
-    return epsilon * (summa);
-}
-
-double integral_2(double epsilon){
-
-    double summa = 0;
-
-    if (epsilon < MINIMAL_EPSILON){
-        epsilon = MINIMAL_EPSILON;
-    }
-
-    for(double i = epsilon; i <= 1 - epsilon; i += epsilon){
-        summa += exp(-(pow(i, 2)) / 2);
-    }
-
-    return epsilon * (summa);
-}
-
-double integral_3(double epsilon){
-    double summa = 0;
-
-    if (epsilon < MINIMAL_EPSILON){
-        epsilon = MINIMAL_EPSILON;
-    }
-
-    for(double i = epsilon; i <= 1 - epsilon; i += epsilon){
-        summa += log(1 / (1 - i));
-    }
-
-    return epsilon * (summa);
-}
-
-double integral_4(double epsilon){
-    double summa = 0;
-
-    if (epsilon < MINIMAL_EPSILON){
-        epsilon = MINIMAL_EPSILON;
-    }
-
-    for(double i = epsilon; i <= 1 - epsilon; i += epsilon){
-        summa += pow(i, i);
-    }
-
-    return epsilon * (summa);
-}
-
-
-int main(int argc, char *argv[]){
-
-    if (argc != 2){
-        printf("Usage: %s <epsilon>\n", argv[0]);
-        return -1;
-    }
-
-    char *endptr_eps;
-    double epsilon = strtod(argv[1], &endptr_eps);
+double trapezoidal_method(double (*f)(double), double a, double b, double epsilon, int* iterations) {
+    int n = 1;
+    double h = (b - a) / n;
+    double T_old = (f(a) + f(b)) * h / 2.0;
+    double T_new;
+    *iterations = 0;
     
-    if (argv[1] == endptr_eps) {
-        printf("Invalid input data\n");
-    } else {
-        double c1 = integral_1(epsilon);
-        double c2 = integral_2(epsilon);
-        double c3 = integral_3(epsilon);
-        double c4 = integral_4(epsilon);
+    int max_iter = 1000000; // Защита от бесконечного цикла
+    
+    do {
+        n *= 2;
+        h = (b - a) / n;
+        T_new = T_old / 2.0;
+        
+        for (int i = 1; i < n; i += 2) {
+            double x = a + i * h;
+            T_new += f(x) * h;
+        }
+        
+        if (fabs(T_new - T_old) < epsilon) {
+            *iterations = n;
+            return T_new;
+        }
+        
+        T_old = T_new;
+        (*iterations)++;
+    } while (*iterations < max_iter);
+    
+    *iterations = n;
+    return T_new;
+}
 
-        printf("1: %f\n2: %f\n3: %f\n4: %f\n", c1, c2, c3, c4);
+
+double f1(double x) {
+    if (fabs(x) < 1e-15) {
+        return 1.0; // предел при x->0
     }
+    double result = log(1.0 + x) / x;
+    
+    // Проверка на переполнение
+    if (!isfinite(result)) {
+        return 1.0; // возвращаем предельное значение
+    }
+    return result;
+}
 
+double f2(double x) {
+    double exponent = -x*x/2.0;
+    
+    // Проверка на переполнение экспоненты
+    if (exponent < -700.0) {
+        return 0.0; // e^(-большое число) ~ 0
+    }
+    
+    return exp(exponent);
+}
+
+double f3(double x) {
+    if (fabs(1.0 - x) < 1e-15) {
+        // Обработка особенности в x=1
+        // Можно вернуть большое число, но аккуратно
+        return 1000.0; // приближенное значение
+    }
+    
+    double result = -log(1.0 - x);
+    
+    // Проверка на переполнение
+    if (!isfinite(result)) {
+        return 1000.0; // возвращаем большое число
+    }
+    return result;
+}
+
+double f4(double x) {
+    if (fabs(x) < 1e-15) {
+        return 1.0; // предел при x->0+
+    }
+    
+    double log_x = log(x);
+    double exponent = x * log_x;
+    
+    // Проверка на переполнение
+    if (!isfinite(exponent) || exponent > 700.0) {
+        return 1.0; // возвращаем предельное значение
+    }
+    
+    return exp(exponent);
+}
+
+
+double calculate_integral1(double epsilon) {
+    int iterations;
+    return trapezoidal_method(f1, 0.0, 1.0, epsilon, &iterations);
+}
+
+double calculate_integral2(double epsilon) {
+    int iterations;
+    return trapezoidal_method(f2, 0.0, 1.0, epsilon, &iterations);
+}
+
+double calculate_integral3(double epsilon) {
+    int iterations;
+    // Интегрируем до 0.9999 чтобы избежать особенности в x=1
+    return trapezoidal_method(f3, 0.0, 0.9999, epsilon, &iterations);
+}
+
+double calculate_integral4(double epsilon) {
+    int iterations;
+    return trapezoidal_method(f4, 0.0, 1.0, epsilon, &iterations);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: %s <epsilon>\n", argv[0]);
+        return 1;
+    }
+    
+    char *endptr;
+    double epsilon = strtod(argv[1], &endptr);
+    
+    if (*endptr != '\0' || epsilon <= 0.0) {
+        printf("Error: epsilon must be a positive real number\n");
+        return 1;
+    }
+    
+    double result1 = calculate_integral1(epsilon);
+    double result2 = calculate_integral2(epsilon);
+    double result3 = calculate_integral3(epsilon);
+    double result4 = calculate_integral4(epsilon);
+    
+    printf("a) integral( ln(1+x)/x dx ) = %.10f\n", result1);
+    printf("b) integral( e^(-(x^2)/2) dx ) = %.10f\n", result2);
+    printf("c) integral( ln(1/(1-x)) dx ) = %.10f\n", result3);
+    printf("d) integral( x^x dx ) = %.10f\n", result4);
+    
     return 0;
 }

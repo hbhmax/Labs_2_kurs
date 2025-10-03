@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <ctype.h>
 
 char * convertInNumberSystem(long number, int ss) {
@@ -90,10 +91,10 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    long max_number = massiveNumbers[0];
+    long max_number = fabs(massiveNumbers[0]);
     for(int i = 1; i < c; i++) {
-        if(max_number < massiveNumbers[i]){
-            max_number = massiveNumbers[i];
+        if(max_number < fabs(massiveNumbers[i])){
+            max_number = fabs(massiveNumbers[i]);
         }
     }
 

@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
             char buf[4096];
             ssize_t bytes;
 
-            printf("Вводите строки (пустая строка для завершения):\n");
+            printf("Input string:\n");
             
             while ((bytes = read(STDIN_FILENO, buf, sizeof(buf))) > 0) {
                 if (bytes < 0) {
@@ -140,7 +140,7 @@ int main(int argc, char **argv) {
             waitpid(child1, NULL, 0);
             waitpid(child2, NULL, 0);
 
-            printf("Родительский процесс завершен.\n");
+            printf("The parent process is completed.\n");
         } break;
         }
     } break;

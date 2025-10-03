@@ -3,6 +3,7 @@
 #include <math.h>
 #include "include/findRoot.h"
 #include "include/isSidesTriangle.h"
+#include "include/checkUnique.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,35 +25,36 @@ int main(int argc, char *argv[])
                 double b = strtod(argv[4], &endptr2);
                 double c = strtod(argv[5], &endptr3);
 
-                if ((argv[2] == endptr_eps) && (argv[3] == endptr1) && (argv[4] == endptr2) && (argv[5] == endptr3)) {
+                if ((argv[2] == endptr_eps) || (argv[3] == endptr1) || (argv[4] == endptr2) || (argv[5] == endptr3)) {
                     printf("Invalid input data\n");
                 } else {
-
-                    double coeficients[] = {a, b, c};
-
                     double * roots;
 
-                                                           // Понимаю что выглядит не очень, но лучше не придумал
-                    for(int i = 0; i < 3; i++) {
-                        for(int j = 0; j < 3; j++) {
-                            for(int k = 0; k < 3; k++) {
-                                if((i != j) && (i != k) && (k != j)){
-                                    roots = findRoot(coeficients[i], coeficients[j], coeficients[k], epsilon);
-                                    printf("Roots with a = %f, b = %f, c = %f : ", coeficients[i], coeficients[j], coeficients[k]);
-                                    if(roots == NULL){
-                                        printf("No roots\n");
-                                    }else{
-                                        for(int i = 0; i < roots[0]; i ++){
-                                            printf("%f ", roots[i + 1]);
-                                        }
-                                        printf("\n");
-                                    }
-                                }
+                    double combination[6][3] = {{a, b, c}, {a, c, b}, {b, a, c}, {b, c, a}, {c, b, a}, {c, a, b}};
+
+                    for(int i = 0; i < 6; i++){
+                        bool flag = true;
+
+                        for(int j = i - 1; j >= 0; j--){
+                            if(!checkUnique(combination[i], 3, combination[j], 3, epsilon)){
+                                flag = false;
+                                break;
                             }
                         }
+                        if (flag)
+                        {
+                            roots = findRoot(combination[i][0], combination[i][1], combination[i][2], epsilon);
+                            printf("Roots with a = %.5f, b = %.5f, c = %.5f : ", combination[i][0], combination[i][1], combination[i][2]);
+                            if(roots != NULL){
+                                for (int k = 0; k < roots[0]; k++){
+                                    printf("%.5f  ", roots[k + 1]);
+                                }
+                            }
+                            printf("\n");
+                        }
+                        
                     }
 
-                    free(roots);
                 }
 
             }else{

@@ -7,15 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
-// Функция проверки гласных (английские и русские)
 int is_vowel(char c) {
     c = tolower(c);
-    return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || 
-            c == 'а' || c == 'е' || c == 'и' || c == 'о' || c == 'у' || 
-            c == 'ы' || c == 'э' || c == 'ю' || c == 'я');
+    return (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'y');
 }
 
-// Функция удаления гласных
 void remove_vowels(char *str, ssize_t length) {
     char *src = str;
     char *dst = str;
@@ -26,7 +22,6 @@ void remove_vowels(char *str, ssize_t length) {
         }
         src++;
     }
-    // Не добавляем нулевой терминатор, так как работаем с бинарными данными
 }
 
 int main(int argc, char **argv) {
@@ -35,7 +30,6 @@ int main(int argc, char **argv) {
 
     pid_t pid = getpid();
 
-    // NOTE: Открываем файл для записи
     int32_t file = open(argv[1], O_WRONLY | O_CREAT | O_TRUNC, 0600);
     if (file == -1) {
         const char msg[] = "error: failed to open requested file\n";
@@ -50,10 +44,8 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        // УДАЛЯЕМ ГЛАСНЫЕ вместо преобразования в верхний регистр
         remove_vowels(buf, bytes);
 
-        // NOTE: Записываем в файл
         int32_t written = write(file, buf, bytes);
         if (written != bytes) {
             const char msg[] = "error: failed to write to file\n";

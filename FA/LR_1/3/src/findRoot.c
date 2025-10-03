@@ -3,14 +3,18 @@
 #include <math.h>
 #include <stdlib.h>
 
-double *findRoot(double a, double b, double c, double epsilon) {
-    if (a == 0 && b == 0) {
+double * findRoot(double a, double b, double c, double epsilon) {
+    if (((-epsilon < a) && (a < epsilon)) && ((-epsilon < b) && (b < epsilon))) {
         return NULL;
     }
 
     double *roots = malloc(3 * sizeof(double));
+    if(roots == NULL){
+        free(roots);
+        return NULL;
+    }
 
-    if (a == 0) {
+    if ((-epsilon < a) && (a < epsilon)) {
         roots[0] = 1;                                //Кол-во корней
         roots[1] = -c / b;
         return roots;
