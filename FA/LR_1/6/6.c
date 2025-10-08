@@ -10,7 +10,7 @@ double trapezoidal_method(double (*f)(double), double a, double b, double epsilo
     double T_new;
     *iterations = 0;
     
-    int max_iter = 1000000; // Защита от бесконечного цикла
+    int max_iter = 1000000;
     
     do {
         n *= 2;
@@ -37,14 +37,13 @@ double trapezoidal_method(double (*f)(double), double a, double b, double epsilo
 
 
 double f1(double x) {
-    if (fabs(x) < 1e-15) {
-        return 1.0; // предел при x->0
+    if (fabs(x) < pow(10, -15)) {
+        return 1.0;
     }
     double result = log(1.0 + x) / x;
     
-    // Проверка на переполнение
     if (!isfinite(result)) {
-        return 1.0; // возвращаем предельное значение
+        return 1.0;
     }
     return result;
 }
@@ -52,41 +51,36 @@ double f1(double x) {
 double f2(double x) {
     double exponent = -x*x/2.0;
     
-    // Проверка на переполнение экспоненты
     if (exponent < -700.0) {
-        return 0.0; // e^(-большое число) ~ 0
+        return 0.0;
     }
     
     return exp(exponent);
 }
 
 double f3(double x) {
-    if (fabs(1.0 - x) < 1e-15) {
-        // Обработка особенности в x=1
-        // Можно вернуть большое число, но аккуратно
-        return 1000.0; // приближенное значение
+    if (fabs(1.0 - x) < pow(10, -15)) {
+        return 1000.0;
     }
     
     double result = -log(1.0 - x);
     
-    // Проверка на переполнение
     if (!isfinite(result)) {
-        return 1000.0; // возвращаем большое число
+        return pow(10, 15);
     }
     return result;
 }
 
 double f4(double x) {
-    if (fabs(x) < 1e-15) {
-        return 1.0; // предел при x->0+
+    if (fabs(x) < pow(10, -15)) {
+        return 1.0;
     }
     
     double log_x = log(x);
     double exponent = x * log_x;
     
-    // Проверка на переполнение
     if (!isfinite(exponent) || exponent > 700.0) {
-        return 1.0; // возвращаем предельное значение
+        return 1.0;
     }
     
     return exp(exponent);
@@ -105,7 +99,6 @@ double calculate_integral2(double epsilon) {
 
 double calculate_integral3(double epsilon) {
     int iterations;
-    // Интегрируем до 0.9999 чтобы избежать особенности в x=1
     return trapezoidal_method(f3, 0.0, 0.9999, epsilon, &iterations);
 }
 
