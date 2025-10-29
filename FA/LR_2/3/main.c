@@ -1,18 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <ctype.h>
-#include <math.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 char* intToRoman(int num) {
     const char* roman[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
     const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-    
-    char* result = malloc(20 * sizeof(char));
+    char* result = malloc(64);
+    if (!result) return NULL;
     result[0] = '\0';
-    
+
     for (int i = 0; i < 13; i++) {
         while (num >= values[i]) {
             strcat(result, roman[i]);
@@ -23,247 +21,206 @@ char* intToRoman(int num) {
 }
 
 char* zeckendorf(unsigned int num) {
-    unsigned int fib[90];
-    fib[0] = 1;
-    fib[1] = 2;
-    for (int i = 2; i < 90; i++) {
-        fib[i] = fib[i-1] + fib[i-2];
-    }
-    
-    char* result = malloc(100 * sizeof(char));
+    unsigned int fib[45];
+    fib[0] = 1; fib[1] = 2;
+    for (int i = 2; i < 45; i++) fib[i] = fib[i-1] + fib[i-2];
+
+    char* result = malloc(64);
+    if (!result) return NULL;
     result[0] = '\0';
-    
-    for (int i = 89; i >= 0; i--) {
+    int found = 0;
+
+    for (int i = 44; i >= 0; i--) {
         if (num >= fib[i]) {
             num -= fib[i];
             strcat(result, "1");
-        } else {
+            found = 1;
+        } else if (found) {
             strcat(result, "0");
         }
     }
+    if (!found) strcat(result, "0");
     strcat(result, "1");
     return result;
 }
 
-char* convertBase(int num, int base) {
+char* convertBase(int num, int base, int upper) {
     if (base < 2 || base > 36) base = 10;
-    
-    char* result = malloc(100 * sizeof(char));
+    char* result = malloc(64);
+    if (!result) return NULL;
     result[0] = '\0';
-    
+
     int sign = (num < 0) ? -1 : 1;
-    num = abs(num);
-    
+    unsigned long n = (sign == -1) ? (unsigned long)(-num) : (unsigned long)num;
+
     do {
-        int rem = num % base;
-        char digit[2];
-        if (rem < 10) {
-            digit[0] = '0' + rem;
-        } else {
-            digit[0] = 'a' + rem - 10;
-        }
-        digit[1] = '\0';
-        strcat(result, digit);
-        num /= base;
-    } while (num > 0);
-    
-    if (sign == -1) {
-        strcat(result, "-");
-    }
-    
+        int rem = n % base;
+        char c = (rem < 10) ? ('0' + rem) : (upper ? 'A' + rem - 10 : 'a' + rem - 10);
+        strcat(result, &c);
+        n /= base;
+    } while (n > 0);
+
+    if (sign == -1) strcat(result, "-");
+
     int len = strlen(result);
     for (int i = 0; i < len / 2; i++) {
-        char temp = result[i];
+        char t = result[i];
         result[i] = result[len - i - 1];
-        result[len - i - 1] = temp;
+        result[len - i - 1] = t;
     }
     return result;
 }
 
 int stringToBase(const char* str, int base) {
-    if (base < 2 || base > 36) base = 10;
-    
-    int result = 0;
-    int sign = 1;
-    
-    if (*str == '-') {
-        sign = -1;
-        str++;
-    }
-    
-    while (*str) {
-        int digit = isdigit(*str) ? *str - '0' : tolower(*str) - 'a' + 10;
+    if (base < 2 || base > 36 || !str) return -1;
+    int sign = 1, i = 0;
+    if (str[0] == '-') { sign = -1; i++; }
+
+    long long result = 0;
+    for (; str[i]; i++) {
+        int digit = isdigit(str[i]) ? str[i] - '0' :
+                  isupper(str[i]) ? str[i] - 'A' + 10 :
+                                   str[i] - 'a' + 10;
         if (digit >= base) return -1;
         result = result * base + digit;
-        str++;
     }
-    return sign * result;
+    return sign * (int)result;
 }
 
 char* memoryDump(const void* ptr, size_t size) {
-    char* result = malloc(size * 9);
+    char* result = malloc(size * 9 + 1);
+    if (!result) return NULL;
     result[0] = '\0';
-    
+
     const unsigned char* bytes = (const unsigned char*)ptr;
     for (size_t i = 0; i < size; i++) {
         for (int j = 7; j >= 0; j--) {
-            strcat(result, (bytes[i] & (1 << j)) ? "1" : "0");
+            char bit = (bytes[i] & (1 << j)) ? '1' : '0';
+            strncat(result, &bit, 1);
         }
-        if (i < size - 1) {
-            strcat(result, " ");
-        }
+        if (i < size - 1) strncat(result, " ", 1);
     }
     return result;
 }
 
-void processSpecifier(char spec, va_list args, char** output, int* length) {
-    char buffer[256];
-    char* temp;
-    
+int processSpecifier(char spec, char type, va_list args, char* buf, int bufSize) {
     switch (spec) {
-        case 'R':
-            if (*(*output - 1) == 'o') {
-                int value = va_arg(args, int);
-                temp = intToRoman(value);
-                strcpy(buffer, temp);
-                free(temp);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
-            }
-            break;
-            
-        case 'Z':
-            if (*(*output - 1) == 'r') {
-                unsigned int value = va_arg(args, unsigned int);
-                temp = zeckendorf(value);
-                strcpy(buffer, temp);
-                free(temp);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
-            }
-            break;
-            
-        case 'C':
-            if (*(*output - 1) == 'v' || *(*output - 1) == 'V') {
-                int value = va_arg(args, int);
-                int base = va_arg(args, int);
-                temp = convertBase(value, base);
-                if (*(*output - 1) == 'V') {
-                    for (char* p = temp; *p; p++) {
-                        *p = toupper(*p);
-                    }
-                }
-                strcpy(buffer, temp);
-                free(temp);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
-            }
-            break;
-            
+        case 'R': {
+            int num = va_arg(args, int);
+            char* roman = intToRoman(num);
+            if (!roman) return 0;
+            snprintf(buf, bufSize, "%s", roman);
+            free(roman);
+            return 1;
+        }
+        case 'Z': {
+            unsigned int num = va_arg(args, unsigned int);
+            char* zeck = zeckendorf(num);
+            if (!zeck) return 0;
+            snprintf(buf, bufSize, "%s", zeck);
+            free(zeck);
+            return 1;
+        }
+        case 'C': {
+            int num = va_arg(args, int);
+            int base = va_arg(args, int);
+            char* conv = convertBase(num, base, (type == 'V'));
+            if (!conv) return 0;
+            snprintf(buf, bufSize, "%s", conv);
+            free(conv);
+            return 1;
+        }
         case 't':
-            if (*(*output - 1) == 'o') {
-                char* str = va_arg(args, char*);
-                int base = va_arg(args, int);
-                int value = stringToBase(str, base);
-                sprintf(buffer, "%d", value);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
-            }
-            break;
-            
-        case 'T':
-            if (*(*output - 1) == 'O') {
-                char* str = va_arg(args, char*);
-                int base = va_arg(args, int);
-                int value = stringToBase(str, base);
-                sprintf(buffer, "%d", value);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
-            }
-            break;
-            
-        case 'm':
-            {
-                char type = *(*output - 1);
-                switch (type) {
-                    case 'i': {
-                        int value = va_arg(args, int);
-                        temp = memoryDump(&value, sizeof(value));
-                        break;
-                    }
-                    case 'u': {
-                        unsigned int value = va_arg(args, unsigned int);
-                        temp = memoryDump(&value, sizeof(value));
-                        break;
-                    }
-                    case 'd': {
-                        double value = va_arg(args, double);
-                        temp = memoryDump(&value, sizeof(value));
-                        break;
-                    }
-                    case 'f': {
-                        float value = (float)va_arg(args, double);
-                        temp = memoryDump(&value, sizeof(value));
-                        break;
-                    }
-                    default:
-                        temp = malloc(1);
-                        temp[0] = '\0';
-                        break;
+        case 'T': {
+            const char* str = va_arg(args, const char*);
+            int base = va_arg(args, int);
+            int val = stringToBase(str, base);
+            snprintf(buf, bufSize, "%d", val);
+            return 1;
+        }
+        case 'm': {
+            switch (type) {
+                case 'i': {
+                    int val = va_arg(args, int);
+                    char* dump = memoryDump(&val, sizeof(val));
+                    if (!dump) return 0;
+                    snprintf(buf, bufSize, "%s", dump);
+                    free(dump);
+                    return 1;
                 }
-                strcpy(buffer, temp);
-                free(temp);
-                *length = strlen(buffer);
-                strcat(*output, buffer);
-                *output += *length;
+                case 'u': {
+                    unsigned int val = va_arg(args, unsigned int);
+                    char* dump = memoryDump(&val, sizeof(val));
+                    if (!dump) return 0;
+                    snprintf(buf, bufSize, "%s", dump);
+                    free(dump);
+                    return 1;
+                }
+                case 'd': {
+                    double val = va_arg(args, double);
+                    char* dump = memoryDump(&val, sizeof(val));
+                    if (!dump) return 0;
+                    snprintf(buf, bufSize, "%s", dump);
+                    free(dump);
+                    return 1;
+                }
+                case 'f': {
+                    float val = (float)va_arg(args, double);
+                    char* dump = memoryDump(&val, sizeof(val));
+                    if (!dump) return 0;
+                    snprintf(buf, bufSize, "%s", dump);
+                    free(dump);
+                    return 1;
+                }
+                default:
+                    return 0;
             }
-            break;
+        }
+        default:
+            return 0;
     }
+    return 0;
 }
 
 int overfprintf(FILE* stream, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    
-    char buffer[1024];
-    char* output = buffer;
+
+    char output[4096] = {0};
+    char temp[256];
     const char* p = format;
-    
+    char* out_ptr = output;
+
     while (*p) {
         if (*p != '%') {
-            *output++ = *p++;
+            *out_ptr++ = *p++;
             continue;
         }
-        
+
         p++;
-        if (*p == '\0') break;
-        
-        if (strchr("RZCTm", *p)) {
-            char spec = *p;
-            p++;
-            if (*p == '\0') break;
-            
-            *output++ = '%';
-            *output++ = spec;
-            *output++ = *p;
-            *output = '\0';
-            
-            int length;
-            processSpecifier(spec, args, &output, &length);
-            p++;
+        if (!*p) break;
+
+        char spec = *p++;
+        if (!*p) break;
+        char type = *p++;
+
+        if (processSpecifier(spec, type, args, temp, sizeof(temp))) {
+            int len = strlen(temp);
+            if (out_ptr + len >= output + sizeof(output)) {
+                va_end(args);
+                return -1;
+            }
+            strcpy(out_ptr, temp);
+            out_ptr += len;
         } else {
-            *output++ = '%';
-            *output++ = *p++;
+            *(out_ptr++) = '%';
+            *(out_ptr++) = spec;
+            *(out_ptr++) = type;
         }
     }
-    
-    *output = '\0';
-    int result = fprintf(stream, "%s", buffer);
+
+    *out_ptr = '\0';
+    int result = fprintf(stream, "%s", output);
     va_end(args);
     return result;
 }
@@ -271,79 +228,82 @@ int overfprintf(FILE* stream, const char* format, ...) {
 int oversprintf(char* str, const char* format, ...) {
     va_list args;
     va_start(args, format);
-    
-    char* output = str;
+
+    char output[4096] = {0};
+    char temp[256];
     const char* p = format;
-    
+    char* out_ptr = output;
+
     while (*p) {
         if (*p != '%') {
-            *output++ = *p++;
+            *out_ptr++ = *p++;
             continue;
         }
-        
-        p++;
-        if (*p == '\0') break;
-        
-        if (strchr("RZCTm", *p)) {
-            char spec = *p;
-            p++;
-            if (*p == '\0') break;
-            
-            *output++ = '%';
-            *output++ = spec;
-            *output++ = *p;
-            *output = '\0';
-            
-            int length;
-            processSpecifier(spec, args, &output, &length);
-            p++;
+
+        p++;  
+        if (!*p) break;
+        char spec = *p++;
+        if (!*p) break;
+        char type = *p++;
+
+        if (processSpecifier(spec, type, args, temp, sizeof(temp))) {
+            int len = strlen(temp);
+            if (out_ptr + len >= output + sizeof(output)) {
+                va_end(args);
+                return -1;
+            }
+            strcpy(out_ptr, temp);
+            out_ptr += len;
         } else {
-            *output++ = '%';
-            *output++ = *p++;
+            *(out_ptr++) = '%';
+            *(out_ptr++) = spec;
+            *(out_ptr++) = type;
         }
     }
-    
-    *output = '\0';
+
+    *out_ptr = '\0';
+    strcpy(str, output);
     va_end(args);
     return strlen(str);
 }
 
 int main() {
     printf("=== overfprintf demo ===\n");
+
     overfprintf(stdout, "Roman: %Ro\n", 2023);
     overfprintf(stdout, "Zeckendorf: %Zr\n", 123);
-    overfprintf(stdout, "Base conv (lower): %Cv\n", 255, 16);
-    overfprintf(stdout, "Base conv (upper): %CV\n", 255, 16);
+    overfprintf(stdout, "Base (lower): %Cv\n", 255, 16);
+    overfprintf(stdout, "Base (upper): %CV\n", 255, 16);
     overfprintf(stdout, "String to int (lower): %to\n", "ff", 16);
     overfprintf(stdout, "String to int (upper): %TO\n", "FF", 16);
-    
+
     int si = -123456;
     unsigned int ui = 123456;
     double d = 3.14159;
     float f = 2.71828f;
-    
+
     overfprintf(stdout, "Memory dump int: %mi\n", si);
     overfprintf(stdout, "Memory dump uint: %mu\n", ui);
     overfprintf(stdout, "Memory dump double: %md\n", d);
     overfprintf(stdout, "Memory dump float: %mf\n", f);
-    
+
     printf("\n=== oversprintf demo ===\n");
     char buffer[1024];
-    
+
     oversprintf(buffer, "Roman: %Ro", 1984);
     printf("%s\n", buffer);
-    
+
     oversprintf(buffer, "Zeckendorf: %Zr", 456);
     printf("%s\n", buffer);
-    
-    oversprintf(buffer, "Base conv: %Cv", 255, 2);
+
+    oversprintf(buffer, "Base: %Cv", 255, 2);
     printf("%s\n", buffer);
-    
+
     oversprintf(buffer, "String to int: %to", "1101", 2);
     printf("%s\n", buffer);
-    
+
     oversprintf(buffer, "Memory dump: %mi", -12345);
     printf("%s\n", buffer);
-    
+
     return 0;
 }

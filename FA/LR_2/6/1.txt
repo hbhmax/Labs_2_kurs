@@ -1,0 +1,15 @@
+ID: 123, NAME: Max SURNAME: Vilov; GROUP: M9J-211-s, GRADES: [3, 4, 5, 3, 5]
+
+764 Koiu, Hrewfdsf; reweJ-2wq1-s, [2, 3, 4, 2, 1]
+
+ID: 6553
+NAME: Ivab
+SURNAME: Tytyert
+GROUP: GsfJ-211-s
+GRADES: [2, 3, 2, 4, 5]
+
+ID: 43
+SURNAME: NYdasd1
+NAME: PO
+GRADES: [5, 1, 5, 3, 4]
+GROUP: GsfJ-211-s
