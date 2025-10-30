@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 typedef struct {
     unsigned int id;
@@ -167,7 +168,9 @@ int extract_grades(char* line, unsigned char* grades) {
 
 int readStudents(const char* filename, Student** students) {
     FILE* file = fopen(filename, "r");
-    if (!file) return -1;
+    if (!file) {
+        return -1;
+    }
     
     *students = NULL;
     int count = 0;
@@ -180,13 +183,13 @@ int readStudents(const char* filename, Student** students) {
     
     char line[256];
     Student current = {0};
-    int fields_found = 0;
+    int has_id = 0, has_name = 0, has_surname = 0, has_group = 0, has_grades = 0;
     
     while (fgets(line, sizeof(line), file)) {
         line[strcspn(line, "\n")] = 0;
         
         if (strlen(line) <= 1) {
-            if (fields_found == 0x1F) {
+            if (has_id && has_name && has_surname && has_group && has_grades) {
                 if (count >= capacity) {
                     capacity *= 2;
                     Student* temp = realloc(*students, capacity * sizeof(Student));
@@ -200,18 +203,24 @@ int readStudents(const char* filename, Student** students) {
                 (*students)[count++] = current;
             }
             memset(&current, 0, sizeof(Student));
-            fields_found = 0;
+            has_id = has_name = has_surname = has_group = has_grades = 0;
             continue;
         }
         
         char* id_value = extract_value(line, "ID:");
-        if (id_value) {
-            current.id = atoi(id_value);
-            fields_found |= 0x01;
+        if (id_value && !has_id) {
+            char* endptr;
+            errno = 0;
+            double id_d = strtod(id_value, &endptr);
+            
+            if (errno == 0 && endptr != id_value && id_d >= 0 && id_d <= UINT_MAX) {
+                current.id = (unsigned int)id_d;
+                has_id = 1;
+            }
         }
         
         char* name_value = extract_value(line, "NAME:");
-        if (name_value) {
+        if (name_value && !has_name) {
             char* end = name_value;
             while (*end && !isspace(*end) && *end != ',' && *end != ';') {
                 end++;
@@ -220,12 +229,12 @@ int readStudents(const char* filename, Student** students) {
             if (len > 0) {
                 strncpy(current.name, name_value, len);
                 current.name[len] = '\0';
-                fields_found |= 0x02;
+                has_name = 1;
             }
         }
         
         char* surname_value = extract_value(line, "SURNAME:");
-        if (surname_value) {
+        if (surname_value && !has_surname) {
             char* end = surname_value;
             while (*end && !isspace(*end) && *end != ',' && *end != ';') {
                 end++;
@@ -234,12 +243,12 @@ int readStudents(const char* filename, Student** students) {
             if (len > 0) {
                 strncpy(current.surname, surname_value, len);
                 current.surname[len] = '\0';
-                fields_found |= 0x04;
+                has_surname = 1;
             }
         }
         
         char* group_value = extract_value(line, "GROUP:");
-        if (group_value) {
+        if (group_value && !has_group) {
             char* end = group_value;
             while (*end && !isspace(*end) && *end != ',' && *end != ';') {
                 end++;
@@ -248,18 +257,18 @@ int readStudents(const char* filename, Student** students) {
             if (len > 0) {
                 strncpy(current.group, group_value, len);
                 current.group[len] = '\0';
-                fields_found |= 0x08;
+                has_group = 1;
             }
         }
         
-        if (strstr(line, "GRADES:")) {
+        if (strstr(line, "GRADES:") && !has_grades) {
             if (extract_grades(line, current.grades)) {
-                fields_found |= 0x10;
+                has_grades = 1;
             }
         }
     }
     
-    if (fields_found == 0x1F) {
+    if (has_id && has_name && has_surname && has_group && has_grades) {
         if (count >= capacity) {
             capacity += 1;
             Student* temp = realloc(*students, capacity * sizeof(Student));

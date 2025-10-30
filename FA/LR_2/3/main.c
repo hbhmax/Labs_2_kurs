@@ -7,7 +7,7 @@
 char* intToRoman(int num) {
     const char* roman[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
     const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-    char* result = malloc(64);
+    char* result = malloc(64 * sizeof(char));
     if (!result) return NULL;
     result[0] = '\0';
 
@@ -23,44 +23,74 @@ char* intToRoman(int num) {
 char* zeckendorf(unsigned int num) {
     unsigned int fib[45];
     fib[0] = 1; fib[1] = 2;
-    for (int i = 2; i < 45; i++) fib[i] = fib[i-1] + fib[i-2];
+    for (int i = 2; i < 45; i++) {
+        fib[i] = fib[i-1] + fib[i-2];
+    }
 
     char* result = malloc(64);
     if (!result) return NULL;
     result[0] = '\0';
+    
     int found = 0;
+    int pos = 0;
 
     for (int i = 44; i >= 0; i--) {
         if (num >= fib[i]) {
             num -= fib[i];
-            strcat(result, "1");
+            result[pos++] = '1';
             found = 1;
-        } else if (found) {
-            strcat(result, "0");
+            
+            if (i > 0) i--;
+        }
+        else if (found) {
+            result[pos++] = '0';
         }
     }
-    if (!found) strcat(result, "0");
-    strcat(result, "1");
+    
+    if (!found) {
+        result[pos++] = '0';
+    }
+    
+    result[pos] = '\0';
     return result;
 }
 
 char* convertBase(int num, int base, int upper) {
-    if (base < 2 || base > 36) base = 10;
-    char* result = malloc(64);
-    if (!result) return NULL;
+    if (base < 2 || base > 36) {
+        base = 10;
+    }
+    char* result = malloc(64 * sizeof(char));
+    if (!result) {
+        return NULL;
+    }
     result[0] = '\0';
 
-    int sign = (num < 0) ? -1 : 1;
-    unsigned long n = (sign == -1) ? (unsigned long)(-num) : (unsigned long)num;
+    int sign = 1; 
+    if (num < 0) {
+        sign = -1;
+    }
+
+    int n = sign * num;
 
     do {
         int rem = n % base;
-        char c = (rem < 10) ? ('0' + rem) : (upper ? 'A' + rem - 10 : 'a' + rem - 10);
+        char c;
+        if (rem < 10) {
+            c = '0' + rem;
+        } else {
+            if (upper) {
+                c = 'A' + rem - 10;
+            } else {
+                'a' + rem - 10;
+            } 
+        }
         strcat(result, &c);
         n /= base;
     } while (n > 0);
 
-    if (sign == -1) strcat(result, "-");
+    if (sign == -1) {
+        strcat(result, "-");
+    }
 
     int len = strlen(result);
     for (int i = 0; i < len / 2; i++) {
@@ -72,16 +102,30 @@ char* convertBase(int num, int base, int upper) {
 }
 
 int stringToBase(const char* str, int base) {
-    if (base < 2 || base > 36 || !str) return -1;
+    if (base < 2 || base > 36 || !str) {
+        return -1;
+    }
     int sign = 1, i = 0;
-    if (str[0] == '-') { sign = -1; i++; }
+    if (str[0] == '-') { 
+        sign = -1; i++;
+    }
 
     long long result = 0;
     for (; str[i]; i++) {
-        int digit = isdigit(str[i]) ? str[i] - '0' :
-                  isupper(str[i]) ? str[i] - 'A' + 10 :
-                                   str[i] - 'a' + 10;
-        if (digit >= base) return -1;
+        int digit;
+        if (isdigit(str[i])) {
+            digit = str[i] - '0';
+        } else {
+            if (isupper(str[i])) {
+                digit = str[i] - 'A' + 10;
+            } else {
+                digit = str[i] - 'a' + 10;
+            }
+        }
+        
+        if (digit >= base) {
+            return -1;
+        }
         result = result * base + digit;
     }
     return sign * (int)result;

@@ -31,24 +31,27 @@ int romanToInt(const char* s) {
 
 unsigned int zeckendorfToInt(const char* s) {
     unsigned int result = 0;
-    unsigned int fib[90];
+    unsigned int fib[45];
     fib[0] = 1;
     fib[1] = 2;
     
-    for (int i = 2; i < 90; i++) {
+    for (int i = 2; i < 45; i++) {
         fib[i] = fib[i-1] + fib[i-2];
     }
     
     int len = strlen(s);
-    if (len > 0 && s[len-1] == '1') {
-        len--;
-    }
+    int fib_index = 0;
     
-    for (int i = 0; i < len; i++) {
+    for (int i = len - 1; i >= 0; i--) {
         if (s[i] == '1') {
-            result += fib[i];
+            result += fib[fib_index];
+            
+            fib_index += 2;
+        } else {
+            fib_index++;
         }
     }
+    
     return result;
 }
 
