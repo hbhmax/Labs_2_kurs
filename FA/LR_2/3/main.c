@@ -4,350 +4,500 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-char* intToRoman(int num) {
-    const char* roman[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
-    const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-    char* result = malloc(64 * sizeof(char));
-    if (!result) return NULL;
-    result[0] = '\0';
-
-    for (int i = 0; i < 13; i++) {
-        while (num >= values[i]) {
-            strcat(result, roman[i]);
-            num -= values[i];
-        }
+void int_to_string(int num, char *result) {
+    if (num == 0) {
+        strcpy(result, "0");
+        return;
     }
-    return result;
+    
+    char buffer[65];
+    int index = 0;
+    int is_negative = 0;
+    
+    unsigned int n;
+    if (num < 0) {
+        is_negative = 1;
+        n = (unsigned int)(-num);
+    } else {
+        n = (unsigned int)num;
+    }
+    
+    while (n > 0) {
+        buffer[index++] = '0' + (n % 10);
+        n /= 10;
+    }
+    
+    if (is_negative) {
+        buffer[index++] = '-';
+    }
+    
+    buffer[index] = '\0';
+    int result_index = 0;
+    for (int i = index - 1; i >= 0; i--) {
+        result[result_index++] = buffer[i];
+    }
+    result[result_index] = '\0';
 }
 
-char* zeckendorf(unsigned int num) {
-    unsigned int fib[45];
-    fib[0] = 1; fib[1] = 2;
-    for (int i = 2; i < 45; i++) {
-        fib[i] = fib[i-1] + fib[i-2];
+void byte_to_binary(unsigned char byte, char *result) {
+    for (int i = 7; i >= 0; i--) {
+        result[i] = (byte & (1 << (7 - i))) ? '1' : '0';
     }
-
-    char* result = malloc(64);
-    if (!result) return NULL;
-    result[0] = '\0';
-    
-    int found = 0;
-    int pos = 0;
-
-    for (int i = 44; i >= 0; i--) {
-        if (num >= fib[i]) {
-            num -= fib[i];
-            result[pos++] = '1';
-            found = 1;
-            
-            if (i > 0) i--;
-        }
-        else if (found) {
-            result[pos++] = '0';
-        }
-    }
-    
-    if (!found) {
-        result[pos++] = '0';
-    }
-    
-    result[pos] = '\0';
-    return result;
+    result[8] = '\0';
 }
 
-char* convertBase(int num, int base, int upper) {
+void dump_memory(const void *data, size_t size, char *result) {
+    const unsigned char *bytes = (const unsigned char *)data;
+    result[0] = '\0';
+    char temp[256] = "";
+
+    for (size_t i = 0; i < size; i++) {
+        char binary[9];
+        byte_to_binary(bytes[i], binary);
+
+        if (i > 0) {
+            strcat(temp, " ");
+        }
+        strcat(temp, binary);
+    }
+    strcpy(result, temp);
+}
+
+const char *roman_symbols[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+const int roman_values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+#define ROMAN_COUNT 13
+
+const unsigned int fib_values[] = {
+    1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597,
+    2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418,
+    317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465
+};
+#define FIB_COUNT 34
+
+void task_a(unsigned int num, char *result) {
+    
+    result[0] = '\0';
+    for (int i = 0; i < ROMAN_COUNT; i++) {
+        while (num >= roman_values[i]) {
+            strcat(result, roman_symbols[i]);
+            num -= roman_values[i];
+        }
+    }
+}
+
+void task_b(int num, char *result) {
+
+    if (num < 0) {
+        strcpy(result, "");
+        return;
+    }
+
+    int coeffs[FIB_COUNT] = {0};
+    
+    for (int i = FIB_COUNT - 1; i >= 0; i--) {
+        if (num >= fib_values[i]) {
+            coeffs[i] = 1;
+            num -= fib_values[i];
+        }
+    }
+    
+    int start_idx = FIB_COUNT - 1;
+    while (start_idx >= 0 && coeffs[start_idx] == 0) {
+        start_idx--;
+    }
+    
+    result[0] = '\0';
+    for (int i = start_idx; i >= 0; i--) {
+        if (i == 1 && fib_values[1] == 1 && fib_values[0] == 1) {
+            continue;
+        }
+        char c = coeffs[i] ? '1' : '0';
+        strncat(result, &c, 1);
+    }
+    
+    if (result[0] == '\0') {
+        strcpy(result, "0");
+    }
+}
+
+void task_c(int num, int base, char *result) {
     if (base < 2 || base > 36) {
         base = 10;
     }
-    char* result = malloc(64 * sizeof(char));
-    if (!result) {
-        return NULL;
+    
+    if (num == 0) {
+        strcpy(result, "0");
+        return;
     }
-    result[0] = '\0';
-
-    int sign = 1; 
+    
+    char buffer[65];
+    int index = 0;
+    int is_negative = 0;
+    
+    unsigned int n;
     if (num < 0) {
-        sign = -1;
+        is_negative = 1;
+        n = (unsigned int)(-num);
+    } else {
+        n = (unsigned int)num;
     }
-
-    int n = sign * num;
-
-    do {
-        int rem = n % base;
-        char c;
-        if (rem < 10) {
-            c = '0' + rem;
+    
+    while (n > 0) {
+        int digit = n % base;
+        if (digit < 10) {
+            buffer[index++] = '0' + digit;
         } else {
-            if (upper) {
-                c = 'A' + rem - 10;
-            } else {
-                'a' + rem - 10;
-            } 
+            buffer[index++] = 'a' + (digit - 10); // Буквы в нижнем регистре
         }
-        strcat(result, &c);
         n /= base;
-    } while (n > 0);
-
-    if (sign == -1) {
-        strcat(result, "-");
     }
-
-    int len = strlen(result);
-    for (int i = 0; i < len / 2; i++) {
-        char t = result[i];
-        result[i] = result[len - i - 1];
-        result[len - i - 1] = t;
+    
+    if (is_negative) {
+        buffer[index++] = '-';
     }
-    return result;
+    
+    buffer[index] = '\0';
+    int result_index = 0;
+    for (int i = index - 1; i >= 0; i--) {
+        result[result_index++] = buffer[i];
+    }
+    result[result_index] = '\0';
 }
 
-int stringToBase(const char* str, int base) {
-    if (base < 2 || base > 36 || !str) {
-        return -1;
+void task_d(int num, int base, char *result) {
+    if (base < 2 || base > 36) {
+        base = 10;
     }
-    int sign = 1, i = 0;
-    if (str[0] == '-') { 
-        sign = -1; i++;
+    
+    if (num == 0) {
+        strcpy(result, "0");
+        return;
     }
-
-    long long result = 0;
-    for (; str[i]; i++) {
-        int digit;
-        if (isdigit(str[i])) {
-            digit = str[i] - '0';
+    
+    char buffer[65];
+    int index = 0;
+    int is_negative = 0;
+    
+    unsigned int n;
+    if (num < 0) {
+        is_negative = 1;
+        n = (unsigned int)(-num);
+    } else {
+        n = (unsigned int)num;
+    }
+    
+    while (n > 0) {
+        int digit = n % base;
+        if (digit < 10) {
+            buffer[index++] = '0' + digit;
         } else {
-            if (isupper(str[i])) {
-                digit = str[i] - 'A' + 10;
-            } else {
-                digit = str[i] - 'a' + 10;
-            }
+            buffer[index++] = 'A' + (digit - 10);
+        }
+        n /= base;
+    }
+    
+    if (is_negative) {
+        buffer[index++] = '-';
+    }
+    
+    buffer[index] = '\0';
+    int result_index = 0;
+    for (int i = index - 1; i >= 0; i--) {
+        result[result_index++] = buffer[i];
+    }
+    result[result_index] = '\0';
+}
+
+void task_e(char *num, int base, char *result) {
+
+    if (base < 2 || base > 36) {
+        base = 10;
+    }
+    
+    if (num == NULL || num[0] == '\0') {
+        strcpy(result, "0");
+        return;
+    }
+    
+    int value = 0;
+    int sign = 1;
+    int i = 0;
+    
+    if (num[0] == '-') {
+        sign = -1;
+        i = 1;
+    }
+    
+    for (; num[i] != '\0'; i++) {
+        char c = num[i];
+        int digit;
+        
+        if (c >= '0' && c <= '9') {
+            digit = c - '0';
+        } else if (c >= 'a' && c <= 'z') {
+            digit = c - 'a' + 10;
+        } else if (c >= 'A' && c <= 'Z') {
+            digit = c - 'A' + 10;
+        } else {
+            break;
         }
         
         if (digit >= base) {
-            return -1;
+            break;
         }
-        result = result * base + digit;
+        
+        value = value * base + digit;
     }
-    return sign * (int)result;
+    
+    value *= sign;
+    
+    int_to_string(value, result);
 }
 
-char* memoryDump(const void* ptr, size_t size) {
-    char* result = malloc(size * 9 + 1);
-    if (!result) return NULL;
-    result[0] = '\0';
+void task_f(char *num, int base, char *result) {
 
-    const unsigned char* bytes = (const unsigned char*)ptr;
-    for (size_t i = 0; i < size; i++) {
-        for (int j = 7; j >= 0; j--) {
-            char bit = (bytes[i] & (1 << j)) ? '1' : '0';
-            strncat(result, &bit, 1);
-        }
-        if (i < size - 1) strncat(result, " ", 1);
+    if (base < 2 || base > 36) {
+        base = 10;
     }
-    return result;
+    
+    if (num == NULL || num[0] == '\0') {
+        strcpy(result, "0");
+        return;
+    }
+    
+    int value = 0;
+    int sign = 1;
+    int i = 0;
+    
+    if (num[0] == '-') {
+        sign = -1;
+        i = 1;
+    }
+    
+    for (; num[i] != '\0'; i++) {
+        char c = num[i];
+        int digit;
+        
+        if (c >= '0' && c <= '9') {
+            digit = c - '0';
+        } else if (c >= 'A' && c <= 'Z') {
+            digit = c - 'A' + 10;
+        } else if (c >= 'a' && c <= 'z') {
+            digit = c - 'a' + 10;
+        } else {
+            break;
+        }
+        
+        if (digit >= base) {
+            break;
+        }
+        
+        value = value * base + digit;
+    }
+    
+    value *= sign;
+    
+    int_to_string(value, result);
 }
 
-int processSpecifier(char spec, char type, va_list args, char* buf, int bufSize) {
-    switch (spec) {
-        case 'R': {
-            int num = va_arg(args, int);
-            char* roman = intToRoman(num);
-            if (!roman) return 0;
-            snprintf(buf, bufSize, "%s", roman);
-            free(roman);
-            return 1;
-        }
-        case 'Z': {
-            unsigned int num = va_arg(args, unsigned int);
-            char* zeck = zeckendorf(num);
-            if (!zeck) return 0;
-            snprintf(buf, bufSize, "%s", zeck);
-            free(zeck);
-            return 1;
-        }
-        case 'C': {
-            int num = va_arg(args, int);
-            int base = va_arg(args, int);
-            char* conv = convertBase(num, base, (type == 'V'));
-            if (!conv) return 0;
-            snprintf(buf, bufSize, "%s", conv);
-            free(conv);
-            return 1;
-        }
-        case 't':
-        case 'T': {
-            const char* str = va_arg(args, const char*);
-            int base = va_arg(args, int);
-            int val = stringToBase(str, base);
-            snprintf(buf, bufSize, "%d", val);
-            return 1;
-        }
-        case 'm': {
-            switch (type) {
-                case 'i': {
-                    int val = va_arg(args, int);
-                    char* dump = memoryDump(&val, sizeof(val));
-                    if (!dump) return 0;
-                    snprintf(buf, bufSize, "%s", dump);
-                    free(dump);
-                    return 1;
+void task_g(int num, char *result) {
+    dump_memory(&num, sizeof(int), result);
+}
+
+void task_h(unsigned int num, char *result) {
+    dump_memory(&num, sizeof(unsigned int), result);
+}
+
+void task_i(double num, char *result) {
+    dump_memory(&num, sizeof(double), result);
+}
+
+void task_j(float num, char *result) {
+    dump_memory(&num, sizeof(float), result);
+}
+
+typedef struct {
+    const char *flag;
+    int arg_count;
+    union {
+        void (*converter1)(int, char*);
+        void (*converter2)(int, int, char*);
+        void (*converter3)(char*, int, char*);
+        void (*converter4)(unsigned int, char*);
+        void (*converter5)(double, char*);
+        void (*converter6)(float, char*);
+    } conv;
+} CustomFlag;
+
+const CustomFlag custom_flags[] = {
+    {"%Ro", 1, { .converter4 = task_a }},
+    {"%Zr", 1, { .converter1 = task_b }},
+    {"%Cv", 2, { .converter2 = task_c }},
+    {"%CV", 2, { .converter2 = task_d }},
+    {"%to", 2, { .converter3 = task_e }},
+    {"%TO", 2, { .converter3 = task_f }},
+    {"%mi", 1, { .converter1 = task_g }},
+    {"%mu", 1, { .converter4 = task_h }},
+    {"%md", 1, { .converter5 = task_i }},
+    {"%mf", 1, { .converter6 = task_j }},
+};
+const int custom_flags_count = 10;
+
+int process_format(const char *format, va_list args, char *buffer, int bufsize) {
+    int pos = 0;
+
+    for (int i = 0; format[i] != '\0'; i++) {
+        if (format[i] == '%') {
+            int matched = 0;
+
+            for (int f = 0; f < custom_flags_count; f++) {
+                const char *flag = custom_flags[f].flag;
+                int flag_len = strlen(flag);
+
+                if (strncmp(&format[i], flag, flag_len) == 0) {
+                    char temp_result[256] = "";
+
+                    if (custom_flags[f].arg_count == 1 && (custom_flags[f].flag == "%Zr" || custom_flags[f].flag == "%mi")) {
+                        int arg = va_arg(args, int);
+                        custom_flags[f].conv.converter1(arg, temp_result);
+                    } else if (custom_flags[f].arg_count == 2 && (custom_flags[f].flag == "%Cv" || custom_flags[f].flag == "%CV")) {
+                        int arg1 = va_arg(args, int);
+                        int arg2 = va_arg(args, int);
+                        custom_flags[f].conv.converter2(arg1, arg2, temp_result);
+                    } else if (custom_flags[f].arg_count == 2 && (custom_flags[f].flag == "%to" || custom_flags[f].flag == "%TO")) {
+                        char* arg1 = va_arg(args, char*);
+                        int arg2 = va_arg(args, int);
+                        custom_flags[f].conv.converter3(arg1, arg2, temp_result);
+                    } else if (custom_flags[f].arg_count == 1 && (custom_flags[f].flag == "%Ro" || custom_flags[f].flag == "%mu")) {
+                        unsigned int arg = va_arg(args, unsigned int);
+                        custom_flags[f].conv.converter4(arg, temp_result);
+                    } else if (custom_flags[f].flag == "%md") {
+                        double arg = va_arg(args, double);
+                        custom_flags[f].conv.converter5(arg, temp_result);
+                    } else if (custom_flags[f].arg_count == 1 && custom_flags[f].flag == "%mf") {
+                        double arg_t = va_arg(args, double);
+                        float arg = (float) arg_t;
+                        custom_flags[f].conv.converter6(arg, temp_result);
+                    }
+
+                    int len = strlen(temp_result);
+                    if (pos + len >= bufsize) return -1;
+                    strcpy(&buffer[pos], temp_result);
+                    pos += len;
+
+                    i += flag_len - 1;
+                    matched = 1;
+                    break;
                 }
-                case 'u': {
-                    unsigned int val = va_arg(args, unsigned int);
-                    char* dump = memoryDump(&val, sizeof(val));
-                    if (!dump) return 0;
-                    snprintf(buf, bufSize, "%s", dump);
-                    free(dump);
-                    return 1;
-                }
-                case 'd': {
-                    double val = va_arg(args, double);
-                    char* dump = memoryDump(&val, sizeof(val));
-                    if (!dump) return 0;
-                    snprintf(buf, bufSize, "%s", dump);
-                    free(dump);
-                    return 1;
-                }
-                case 'f': {
-                    float val = (float)va_arg(args, double);
-                    char* dump = memoryDump(&val, sizeof(val));
-                    if (!dump) return 0;
-                    snprintf(buf, bufSize, "%s", dump);
-                    free(dump);
-                    return 1;
-                }
-                default:
-                    return 0;
             }
+
+            if (!matched) {
+                char specifier[10] = "%";
+                int j = 1;
+
+                while (format[i + j] && !isalpha(format[i + j])) {
+                    specifier[j] = format[i + j];
+                    j++;
+                }
+                if (format[i + j]) {
+                    specifier[j] = format[i + j];
+                    j++;
+                }
+                specifier[j] = '\0';
+
+                char temp[256];
+                if (strcmp(specifier, "%d") == 0 || strcmp(specifier, "%i") == 0) {
+                    int arg = va_arg(args, int);
+                    snprintf(temp, sizeof(temp), specifier, arg);
+                } else if (strcmp(specifier, "%u") == 0) {
+                    unsigned int arg = va_arg(args, unsigned int);
+                    snprintf(temp, sizeof(temp), specifier, arg);
+                } else if (strcmp(specifier, "%s") == 0) {
+                    char* arg = va_arg(args, char*);
+                    snprintf(temp, sizeof(temp), specifier, arg);
+                } else if (strcmp(specifier, "%c") == 0) {
+                    int arg_t = va_arg(args, int);
+                    char arg = (char) arg_t;
+                    snprintf(temp, sizeof(temp), specifier, arg);
+                } else if (strcmp(specifier, "%f") == 0 || strcmp(specifier, "%e") == 0) {
+                    double arg = va_arg(args, double);
+                    snprintf(temp, sizeof(temp), specifier, arg);
+                } else {
+                    strcpy(temp, specifier);
+                }
+
+                int len = strlen(temp);
+                if (pos + len >= bufsize) return -1;
+                strcpy(&buffer[pos], temp);
+                pos += len;
+
+                i += j - 1;
+            }
+        } else {
+            if (pos >= bufsize) return -1;
+            buffer[pos++] = format[i];
         }
-        default:
-            return 0;
     }
-    return 0;
+
+    if (pos < bufsize) buffer[pos] = '\0';
+    return pos;
 }
 
-int overfprintf(FILE* stream, const char* format, ...) {
+
+int overfprintf(FILE *stream, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    char output[4096] = {0};
-    char temp[256];
-    const char* p = format;
-    char* out_ptr = output;
+    char buffer[4096];
+    int result = process_format(format, args, buffer, sizeof(buffer));
 
-    while (*p) {
-        if (*p != '%') {
-            *out_ptr++ = *p++;
-            continue;
-        }
+    va_end(args);
 
-        p++;
-        if (!*p) break;
-
-        char spec = *p++;
-        if (!*p) break;
-        char type = *p++;
-
-        if (processSpecifier(spec, type, args, temp, sizeof(temp))) {
-            int len = strlen(temp);
-            if (out_ptr + len >= output + sizeof(output)) {
-                va_end(args);
-                return -1;
-            }
-            strcpy(out_ptr, temp);
-            out_ptr += len;
-        } else {
-            *(out_ptr++) = '%';
-            *(out_ptr++) = spec;
-            *(out_ptr++) = type;
-        }
+    if (result != -1) {
+        fputs(buffer, stream);
     }
 
-    *out_ptr = '\0';
-    int result = fprintf(stream, "%s", output);
-    va_end(args);
     return result;
 }
 
-int oversprintf(char* str, const char* format, ...) {
+int oversprintf(const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    char output[4096] = {0};
-    char temp[256];
-    const char* p = format;
-    char* out_ptr = output;
+    char buffer[4096];
+    int result = process_format(format, args, buffer, sizeof(buffer));
 
-    while (*p) {
-        if (*p != '%') {
-            *out_ptr++ = *p++;
-            continue;
-        }
+    va_end(args);
 
-        p++;  
-        if (!*p) break;
-        char spec = *p++;
-        if (!*p) break;
-        char type = *p++;
-
-        if (processSpecifier(spec, type, args, temp, sizeof(temp))) {
-            int len = strlen(temp);
-            if (out_ptr + len >= output + sizeof(output)) {
-                va_end(args);
-                return -1;
-            }
-            strcpy(out_ptr, temp);
-            out_ptr += len;
-        } else {
-            *(out_ptr++) = '%';
-            *(out_ptr++) = spec;
-            *(out_ptr++) = type;
-        }
+    if (result != -1) {
+        fputs(buffer, stdout);
     }
 
-    *out_ptr = '\0';
-    strcpy(str, output);
-    va_end(args);
-    return strlen(str);
+    return result;
 }
 
 int main() {
-    printf("=== overfprintf demo ===\n");
+    printf("\n--- overfprintf ---\n");
+    overfprintf(stdout, "Number %d in Roman numerals: %Ro\n", 45, 45);
+    overfprintf(stdout, "Number %u in Zeckendorf representation: %Zr\n", 431, 431);
+    overfprintf(stdout, "Number %d in base %d: %Cv\n", 67, 14, 67, 14);
+    overfprintf(stdout, "Number %d in base %d: %CV\n", 67, 14, 67, 14);
+    overfprintf(stdout, "Number %to - its %s in base %d\n", "3a", 12, "3a", 12);
+    overfprintf(stdout, "Number %TO - its %s in base %d\n", "3A", 12, "3A", 12);
+    overfprintf(stdout, "Int number %d in bytes: %mi\n", 26, 26);
+    overfprintf(stdout, "Unsigned int number %ud in bytes: %mu\n", 32, 32);
+    overfprintf(stdout, "Double number %f in bytes: %md\n", 5.22, 5.22);
+    overfprintf(stdout, "Float number %f in bytes: %mf\n", 6.00001, 6.00001);
 
-    overfprintf(stdout, "Roman: %Ro\n", 2023);
-    overfprintf(stdout, "Zeckendorf: %Zr\n", 123);
-    overfprintf(stdout, "Base (lower): %Cv\n", 255, 16);
-    overfprintf(stdout, "Base (upper): %CV\n", 255, 16);
-    overfprintf(stdout, "String to int (lower): %to\n", "ff", 16);
-    overfprintf(stdout, "String to int (upper): %TO\n", "FF", 16);
-
-    int si = -123456;
-    unsigned int ui = 123456;
-    double d = 3.14159;
-    float f = 2.71828f;
-
-    overfprintf(stdout, "Memory dump int: %mi\n", si);
-    overfprintf(stdout, "Memory dump uint: %mu\n", ui);
-    overfprintf(stdout, "Memory dump double: %md\n", d);
-    overfprintf(stdout, "Memory dump float: %mf\n", f);
-
-    printf("\n=== oversprintf demo ===\n");
-    char buffer[1024];
-
-    oversprintf(buffer, "Roman: %Ro", 1984);
-    printf("%s\n", buffer);
-
-    oversprintf(buffer, "Zeckendorf: %Zr", 456);
-    printf("%s\n", buffer);
-
-    oversprintf(buffer, "Base: %Cv", 255, 2);
-    printf("%s\n", buffer);
-
-    oversprintf(buffer, "String to int: %to", "1101", 2);
-    printf("%s\n", buffer);
-
-    oversprintf(buffer, "Memory dump: %mi", -12345);
-    printf("%s\n", buffer);
-
-    return 0;
+    printf("\n--- oversprintf ---\n");
+    oversprintf("Number %d in Roman numerals: %Ro\n", 45, 45);
+    oversprintf("Number %u in Zeckendorf representation: %Zr\n", 100, 100);
+    oversprintf("Number %d in base %d: %Cv\n", 67, 14, 67, 14);
+    oversprintf("Number %d in base %d: %CV\n", 67, 14, 67, 14);
+    oversprintf("Number %to - its %s in base %d\n", "3a", 12, "3a", 12);
+    oversprintf("Number %TO - its %s in base %d\n", "3A", 12, "3A", 12);
+    oversprintf("Int number %d in bytes: %mi\n", 26, 26);
+    oversprintf("Unsigned int number %ud in bytes: %mu\n", 32, 32);
+    oversprintf("Double number %f in bytes: %md\n", 5.22, 5.22);
+    oversprintf("Float number %f in bytes: %mf\n", 6.00001, 6.00001);
 }
