@@ -36,8 +36,7 @@ void check_finite_representation(int base, int count, ...) {
                 break;
             }
             if (a >= b) {
-                while (a >= b)
-                {
+                while (a >= b){
                     a -= b;
                 }
                 a *= base;

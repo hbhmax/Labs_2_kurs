@@ -40,8 +40,9 @@ void int_to_string(int num, char *result) {
 }
 
 void byte_to_binary(unsigned char byte, char *result) {
-    for (int i = 7; i >= 0; i--) {
-        result[i] = (byte & (1 << (7 - i))) ? '1' : '0';
+    for (int i = 0; i < 8; i++) {
+        result[i] = (byte & 128) ? '1' : '0';
+        byte <<= 1;
     }
     result[8] = '\0';
 }
@@ -74,8 +75,7 @@ const unsigned int fib_values[] = {
 };
 #define FIB_COUNT 34
 
-void task_a(unsigned int num, char *result) {
-    
+void task_a(unsigned int num, char *result) { 
     result[0] = '\0';
     for (int i = 0; i < ROMAN_COUNT; i++) {
         while (num >= roman_values[i]) {
@@ -86,7 +86,6 @@ void task_a(unsigned int num, char *result) {
 }
 
 void task_b(int num, char *result) {
-
     if (num < 0) {
         strcpy(result, "");
         return;
@@ -147,7 +146,7 @@ void task_c(int num, int base, char *result) {
         if (digit < 10) {
             buffer[index++] = '0' + digit;
         } else {
-            buffer[index++] = 'a' + (digit - 10); // Буквы в нижнем регистре
+            buffer[index++] = 'a' + (digit - 10);
         }
         n /= base;
     }

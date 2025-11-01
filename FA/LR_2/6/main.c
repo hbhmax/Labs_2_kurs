@@ -213,7 +213,7 @@ int readStudents(const char* filename, Student** students) {
             errno = 0;
             double id_d = strtod(id_value, &endptr);
             
-            if (errno == 0 && endptr != id_value && id_d >= 0 && id_d <= UINT_MAX) {
+            if (errno == 0 && endptr != id_value && id_d >= 0) {
                 current.id = (unsigned int)id_d;
                 has_id = 1;
             }

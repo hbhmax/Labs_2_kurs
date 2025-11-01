@@ -111,7 +111,9 @@ char** split_string_by_words(const char* str, int max_chars, int* count) {
             capacity *= 2;
             char** new_words = realloc(words, capacity * sizeof(char*));
             if (!new_words) {
-                for (int i = 0; i < word_count; i++) free(words[i]);
+                for (int i = 0; i < word_count; i++) {
+                    free(words[i]);
+                }
                 free(words);
                 free(copy);
                 return NULL;
@@ -136,7 +138,9 @@ char** split_string_by_words(const char* str, int max_chars, int* count) {
     
     result = malloc(result_capacity * sizeof(char*));
     if (!result) {
-        for (int i = 0; i < word_count; i++) free(words[i]);
+        for (int i = 0; i < word_count; i++) {
+            free(words[i]);
+        }
         free(words);
         return NULL;
     }
@@ -164,9 +168,13 @@ char** split_string_by_words(const char* str, int max_chars, int* count) {
         
         char* substring = malloc(substring_len + 1);
         if (!substring) {
-            for (int i = 0; i < result_count; i++) free(result[i]);
+            for (int i = 0; i < result_count; i++) {
+                free(result[i]);
+            }
             free(result);
-            for (int i = 0; i < word_count; i++) free(words[i]);
+            for (int i = 0; i < word_count; i++) {
+                free(words[i]);
+            }
             free(words);
             return NULL;
         }
@@ -184,9 +192,13 @@ char** split_string_by_words(const char* str, int max_chars, int* count) {
             char** new_result = realloc(result, result_capacity * sizeof(char*));
             if (!new_result) {
                 free(substring);
-                for (int i = 0; i < result_count; i++) free(result[i]);
+                for (int i = 0; i < result_count; i++) {
+                    free(result[i]);
+                }
                 free(result);
-                for (int i = 0; i < word_count; i++) free(words[i]);
+                for (int i = 0; i < word_count; i++) {
+                    free(words[i]);
+                }
                 free(words);
                 return NULL;
             }
@@ -197,7 +209,9 @@ char** split_string_by_words(const char* str, int max_chars, int* count) {
         current_start = word_index;
     }
     
-    for (int i = 0; i < word_count; i++) free(words[i]);
+    for (int i = 0; i < word_count; i++) {
+        free(words[i]);
+    }
     free(words);
     
     *count = result_count;
