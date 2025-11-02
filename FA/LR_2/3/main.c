@@ -90,33 +90,36 @@ void task_b(int num, char *result) {
         strcpy(result, "");
         return;
     }
+    if (num == 0) {
+        strcpy(result, "01");
+        return;
+    }
 
     int coeffs[FIB_COUNT] = {0};
-    
-    for (int i = FIB_COUNT - 1; i >= 0; i--) {
+    int i = FIB_COUNT - 1;
+
+    while (i >= 0 && num > 0) {
         if (num >= fib_values[i]) {
             coeffs[i] = 1;
             num -= fib_values[i];
+            i -= 2;
+        } else {
+            i--;
         }
     }
-    
-    int start_idx = FIB_COUNT - 1;
-    while (start_idx >= 0 && coeffs[start_idx] == 0) {
-        start_idx--;
+
+    int k = FIB_COUNT - 1;
+    while (coeffs[k] == 0) {
+        k--;
     }
     
+
     result[0] = '\0';
-    for (int i = start_idx; i >= 0; i--) {
-        if (i == 1 && fib_values[1] == 1 && fib_values[0] == 1) {
-            continue;
-        }
-        char c = coeffs[i] ? '1' : '0';
+    for (int j = 0; j < k + 1; j++) {
+        char c = coeffs[j] ? '1' : '0';
         strncat(result, &c, 1);
     }
-    
-    if (result[0] == '\0') {
-        strcpy(result, "0");
-    }
+    strncat(result, "1", 1);
 }
 
 void task_c(int num, int base, char *result) {
