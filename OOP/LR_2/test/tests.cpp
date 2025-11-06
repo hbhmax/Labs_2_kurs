@@ -4,7 +4,6 @@
 
 using namespace std;
 
-// Тесты конструкторов
 TEST(OctalTest, DefaultConstructor) {
     Octal num;
     EXPECT_EQ(num.toString(), "0");
@@ -42,7 +41,6 @@ TEST(OctalTest, InvalidOctalDigit) {
     EXPECT_THROW(Octal("128"), invalid_argument);
 }
 
-// Тесты операций сравнения
 TEST(OctalTest, Equals) {
     Octal num1("123");
     Octal num2("123");
@@ -72,7 +70,6 @@ TEST(OctalTest, GreaterThan) {
     EXPECT_FALSE(num1.greaterThan(num1));
 }
 
-// Тесты арифметических операций
 TEST(OctalTest, Add) {
     Octal num1("12");
     Octal num2("7");
@@ -112,7 +109,6 @@ TEST(OctalTest, SubtractNegativeResult) {
     EXPECT_THROW(num1.subtract(num2), invalid_argument);
 }
 
-// Тесты операций с присваиванием
 TEST(OctalTest, AddAssign) {
     Octal num1("12");
     Octal num2("7");
@@ -129,7 +125,6 @@ TEST(OctalTest, SubtractAssign) {
     EXPECT_EQ(num1.toString(), "12");
 }
 
-// Тесты граничных случаев
 TEST(OctalTest, ZeroOperations) {
     Octal zero;
     Octal num("123");
@@ -147,7 +142,6 @@ TEST(OctalTest, LargeNumbers) {
     EXPECT_EQ(result.toString(), "10000000");
 }
 
-// Тесты методов доступа
 TEST(OctalTest, GetDigit) {
     Octal num("123");
     
@@ -166,7 +160,6 @@ TEST(OctalTest, CopyMethod) {
     EXPECT_EQ(original.toString(), copy.toString());
 }
 
-// Тест перемещающего конструктора
 TEST(OctalTest, MoveConstructor) {
     Octal original("123");
     Octal moved(move(original));

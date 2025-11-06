@@ -60,11 +60,8 @@ TEST(HexagonTest, CenterCalculation) {
 TEST(FigureArrayTest, AddAndTotalArea) {
     FigureArray array;
     
-    auto rhombus = std::unique_ptr<Rhombus>(new Rhombus(0, 0, 2, 3));
-    auto pentagon = std::unique_ptr<Pentagon>(new Pentagon(0, 0, 1));
-    
-    array.addFigure(std::move(rhombus));
-    array.addFigure(std::move(pentagon));
+    array.addFigure(std::make_unique<Rhombus>(0, 0, 2, 3));
+    array.addFigure(std::make_unique<Pentagon>(0, 0, 1));
     
     ASSERT_GT(array.totalArea(), 0);
     ASSERT_EQ(array.size(), 2);
@@ -73,11 +70,8 @@ TEST(FigureArrayTest, AddAndTotalArea) {
 TEST(FigureArrayTest, RemoveFigure) {
     FigureArray array;
     
-    auto rhombus = std::unique_ptr<Rhombus>(new Rhombus(0, 0, 2, 3));
-    auto pentagon = std::unique_ptr<Pentagon>(new Pentagon(0, 0, 1));
-    
-    array.addFigure(std::move(rhombus));
-    array.addFigure(std::move(pentagon));
+    array.addFigure(std::make_unique<Rhombus>(0, 0, 2, 3));
+    array.addFigure(std::make_unique<Pentagon>(0, 0, 1));
     
     ASSERT_EQ(array.size(), 2);
     array.removeFigure(0);

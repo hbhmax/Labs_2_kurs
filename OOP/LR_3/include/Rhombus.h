@@ -4,13 +4,12 @@
 #include "Figure.h"
 
 class Rhombus : public Figure {
-private:
-    double x, y;
-    double diagonal1, diagonal2;
-
 public:
+    double x, y;
+    double d1, d2;
+    
     Rhombus();
-    Rhombus(double x, double y, double d1, double d2);
+    Rhombus(double x_val, double y_val, double d1_val, double d2_val);
     
     double area() const override;
     std::pair<double, double> center() const override;

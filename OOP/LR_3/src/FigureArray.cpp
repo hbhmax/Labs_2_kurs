@@ -3,7 +3,8 @@
 #include "../include/Pentagon.h"
 #include "../include/Hexagon.h"
 #include <iostream>
-#include <algorithm>
+#include <memory>
+#include <vector>
 #include <cctype>
 
 void FigureArray::addFigure(std::unique_ptr<Figure> fig) {
@@ -11,7 +12,7 @@ void FigureArray::addFigure(std::unique_ptr<Figure> fig) {
 }
 
 void FigureArray::removeFigure(int index) {
-    if (index >= 0 && index < static_cast<int>(figures.size())) {
+    if (index >= 0 && index < figures.size()) {
         figures.erase(figures.begin() + index);
     }
 }
@@ -25,23 +26,27 @@ double FigureArray::totalArea() const {
 }
 
 void FigureArray::printAll() const {
-    for (size_t i = 0; i < figures.size(); ++i) {
+    for (size_t i = 0; i < figures.size(); i++) {
         std::cout << "Figure " << i << ": ";
         auto center = figures[i]->center();
-        std::cout << *figures[i] << " | Center: (" << center.first << ", " << center.second 
-                  << ") | Area: " << figures[i]->area() << std::endl;
+        std::cout << *figures[i] << " | Center: (" << center.first << ", " << center.second << ")";
+        std::cout << " | Area: " << figures[i]->area() << std::endl;
     }
 }
 
-size_t FigureArray::size() const {
+int FigureArray::size() const {
     return figures.size();
 }
 
 std::unique_ptr<Figure> createFigure(const std::string& type) {
     std::string lowerType = type;
-    std::transform(lowerType.begin(), lowerType.end(), lowerType.begin(), ::tolower);
-    if (lowerType == "rhombus") return std::unique_ptr<Rhombus>(new Rhombus());
-    if (lowerType == "pentagon") return std::unique_ptr<Pentagon>(new Pentagon());
-    if (lowerType == "hexagon") return std::unique_ptr<Hexagon>(new Hexagon());
+    for (int i = 0; i < lowerType.length(); i++) {
+        lowerType[i] = tolower(lowerType[i]);
+    }
+    
+    if (lowerType == "rhombus") return std::make_unique<Rhombus>();
+    if (lowerType == "pentagon") return std::make_unique<Pentagon>();
+    if (lowerType == "hexagon") return std::make_unique<Hexagon>();
+
     return nullptr;
 }

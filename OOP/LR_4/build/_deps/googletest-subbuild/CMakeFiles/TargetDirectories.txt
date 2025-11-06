@@ -1,3 +1,0 @@
-C:/Users/gievs/Desktop/Prog/2 sem/Labs_2_kurs/OOP/LR_4/build/_deps/googletest-subbuild/CMakeFiles/googletest-populate.dir
-C:/Users/gievs/Desktop/Prog/2 sem/Labs_2_kurs/OOP/LR_4/build/_deps/googletest-subbuild/CMakeFiles/edit_cache.dir
-C:/Users/gievs/Desktop/Prog/2 sem/Labs_2_kurs/OOP/LR_4/build/_deps/googletest-subbuild/CMakeFiles/rebuild_cache.dir

@@ -6,15 +6,14 @@
 #include <vector>
 
 class FigureArray {
-private:
-    std::vector<std::unique_ptr<Figure>> figures;
-
 public:
+    std::vector<std::unique_ptr<Figure>> figures;
+    
     void addFigure(std::unique_ptr<Figure> fig);
     void removeFigure(int index);
     double totalArea() const;
     void printAll() const;
-    size_t size() const;
+    int size() const;
 };
 
 std::unique_ptr<Figure> createFigure(const std::string& type);
