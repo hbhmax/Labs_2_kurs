@@ -219,10 +219,20 @@ int overfscanf(FILE *stream, const char *format, ...) {
             char spec[3] = {'%', *p, '\0'};
             switch (*p) {
                 case 'd':
+                case 'i':
                     count += fscanf(stream, spec, va_arg(args, int*));
                     break;
                 case 'u':
                     count += fscanf(stream, spec, va_arg(args, unsigned int*));
+                    break;
+                case 'c':
+                    count += fscanf(stream, spec, va_arg(args, char*));
+                    break;
+                case 's':
+                    count += fscanf(stream, spec, va_arg(args, char*));
+                    break;
+                case 'f':
+                    count += fscanf(stream, spec, va_arg(args, double*));
                     break;
             }
             p++;
@@ -313,12 +323,26 @@ int oversscanf(const char *str, const char *format, ...) {
             char spec[3] = {'%', *p, '\0'};
             switch (*p) {
                 case 'd':
+                case 'i':
                     count += sscanf(s, spec, va_arg(args, int*));
                     while (*s && !isspace(*s)) s++;
                     break;
                 case 'u':
                     count += sscanf(s, spec, va_arg(args, unsigned int*));
                     while (*s && !isspace(*s)) s++;
+                    break;
+                case 'f':
+                    count += sscanf(s, spec, va_arg(args, double*));
+                    while (*s && !isspace(*s)) s++;
+                    break;
+                case 'c':
+                    count += sscanf(s, spec, va_arg(args, char*));
+                    while (*s && !isspace(*s)) s++;
+                    break;
+                case 's':
+                    count += sscanf(s, spec, va_arg(args, char*));
+                    while (*s && !isspace(*s)) s++;
+                    while (*s && isspace(*s)) s++;
                     break;
             }
             p++;
