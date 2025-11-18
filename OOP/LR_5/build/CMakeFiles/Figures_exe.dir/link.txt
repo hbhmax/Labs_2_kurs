@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\Figures_exe.dir/objects.a
-C:\mingw32\bin\ar.exe qc CMakeFiles\Figures_exe.dir/objects.a @CMakeFiles\Figures_exe.dir\objects1.rsp
-C:\mingw32\bin\c++.exe  -Wa,-mbig-obj -Wl,--whole-archive CMakeFiles\Figures_exe.dir/objects.a -Wl,--no-whole-archive -o Figures_exe.exe -Wl,--out-implib,libFigures_exe.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Figures_exe.dir\linkLibs.rsp
