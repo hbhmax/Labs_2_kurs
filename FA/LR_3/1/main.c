@@ -5,21 +5,19 @@
 
 int main() {
     char result[65];
+    int count = 0;
+    int number;
+    int degreeBase;
 
-    convert_to_base(255, 1, result);
-    printf("255 in 2: %s\n", result);
+    printf("Enter the count of tests:\n");
+    scanf("%d", &count);
 
-    convert_to_base(255, 2, result);
-    printf("255 in 4: %s\n", result);
-
-    convert_to_base(255, 3, result);
-    printf("255 in 8: %s\n", result);
-
-    convert_to_base(255, 4, result);
-    printf("255 in 16: %s\n", result);
-
-    convert_to_base(255, 5, result);
-    printf("255 in 32: %s\n", result);
+    for (int i = 0; i < count; i++) {
+        printf("Enter the number and degree of base:          (example: \"16 3\")  ->  16 in base 2^3\n");
+        scanf("%d %d", &number, &degreeBase);
+        convert_to_base(number, degreeBase, result);
+        printf("%s\n", result);
+    }
 
     return 0;
 }
