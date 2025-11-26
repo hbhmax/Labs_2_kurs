@@ -19,6 +19,7 @@ typedef struct {
 } Student;
 
 double calculate_average_grade(const Student *student);
+int is_latin_string(const char *str);
 void print_student(const Student *student);
 void print_student_detailed(const Student *student);
 void display_all_students(const Student *students, int count);

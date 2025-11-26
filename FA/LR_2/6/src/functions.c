@@ -1,5 +1,18 @@
 #include "../include/functions.h"
 
+int is_latin_string(const char *str) {
+    if (!str || strlen(str) == 0) return 0;
+    
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!((str[i] >= 'A' && str[i] <= 'Z') || 
+              (str[i] >= 'a' && str[i] <= 'z') ||
+              str[i] == ' ' || str[i] == '-')) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 double calculate_average_grade(const Student *student) {
     double sum = 0;
     for (int i = 0; i < GRADES_COUNT; i++) {
@@ -322,12 +335,14 @@ int load_students(const char* filename, Student** students) {
     char line[256];
     Student current = {0};
     int has_id = 0, has_name = 0, has_surname = 0, has_group = 0, has_grades = 0;
+    int valid_name = 1, valid_surname = 1;
     
     while (fgets(line, sizeof(line), file)) {
         line[strcspn(line, "\n")] = 0;
         
         if (strlen(line) <= 1) {
-            if (has_id && has_name && has_surname && has_group && has_grades) {
+            if (has_id && has_name && has_surname && has_group && has_grades && 
+                valid_name && valid_surname) {
                 if (count >= capacity) {
                     capacity *= 2;
                     Student* temp = realloc(*students, capacity * sizeof(Student));
@@ -342,71 +357,209 @@ int load_students(const char* filename, Student** students) {
             }
             memset(&current, 0, sizeof(Student));
             has_id = has_name = has_surname = has_group = has_grades = 0;
+            valid_name = valid_surname = 1;
             continue;
         }
         
-        char* id_value = extract_value(line, "ID:");
-        if (id_value && !has_id) {
-            char* endptr;
-            errno = 0;
-            double id_d = strtod(id_value, &endptr);
+        int fields_in_line = 0;
+        if (strstr(line, "ID:") && strstr(line, "NAME:") && strstr(line, "SURNAME:") && 
+            strstr(line, "GROUP:") && strstr(line, "GRADES:")) {
+            fields_in_line = 1;
+        }
+        
+        if (fields_in_line) {
+            char* ptr = line;
             
-            if (errno == 0 && endptr != id_value && id_d >= 0) {
-                current.id = (unsigned int)id_d;
-                has_id = 1;
+            char* id_start = strstr(ptr, "ID:");
+            if (id_start && !has_id) {
+                char* value_start = id_start + 3;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0) {
+                    char id_str[20];
+                    strncpy(id_str, value_start, len);
+                    id_str[len] = '\0';
+                    
+                    char* endptr;
+                    errno = 0;
+                    double id_d = strtod(id_str, &endptr);
+                    if (errno == 0 && endptr != id_str && id_d >= 0) {
+                        current.id = (unsigned int)id_d;
+                        has_id = 1;
+                    }
+                }
             }
-        }
-        
-        char* name_value = extract_value(line, "NAME:");
-        if (name_value && !has_name) {
-            char* end = name_value;
-            while (*end && !isspace(*end) && *end != ',' && *end != ';') {
-                end++;
+            
+            char* name_start = strstr(ptr, "NAME:");
+            if (name_start && !has_name) {
+                char* value_start = name_start + 5;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.name, value_start, len);
+                    current.name[len] = '\0';
+                    if (is_latin_string(current.name)) {
+                        has_name = 1;
+                        valid_name = 1;
+                    } else {
+                        has_name = 0;
+                        valid_name = 0;
+                    }
+                }
             }
-            int len = end - name_value;
-            if (len > 0 && len < MAX_NAME_LENGTH) {
-                strncpy(current.name, name_value, len);
-                current.name[len] = '\0';
-                has_name = 1;
+            
+            char* surname_start = strstr(ptr, "SURNAME:");
+            if (surname_start && !has_surname) {
+                char* value_start = surname_start + 8;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.surname, value_start, len);
+                    current.surname[len] = '\0';
+                    if (is_latin_string(current.surname)) {
+                        has_surname = 1;
+                        valid_surname = 1;
+                    } else {
+                        has_surname = 0;
+                        valid_surname = 0;
+                    }
+                }
             }
-        }
-        
-        char* surname_value = extract_value(line, "SURNAME:");
-        if (surname_value && !has_surname) {
-            char* end = surname_value;
-            while (*end && !isspace(*end) && *end != ',' && *end != ';') {
-                end++;
+            
+            char* group_start = strstr(ptr, "GROUP:");
+            if (group_start && !has_group) {
+                char* value_start = group_start + 6;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.group, value_start, len);
+                    current.group[len] = '\0';
+                    has_group = 1;
+                }
             }
-            int len = end - surname_value;
-            if (len > 0 && len < MAX_NAME_LENGTH) {
-                strncpy(current.surname, surname_value, len);
-                current.surname[len] = '\0';
-                has_surname = 1;
+            
+            if (!has_grades) {
+                if (extract_grades(line, current.grades)) {
+                    has_grades = 1;
+                }
             }
-        }
-        
-        char* group_value = extract_value(line, "GROUP:");
-        if (group_value && !has_group) {
-            char* end = group_value;
-            while (*end && !isspace(*end) && *end != ',' && *end != ';') {
-                end++;
-            }
-            int len = end - group_value;
-            if (len > 0 && len < MAX_NAME_LENGTH) {
-                strncpy(current.group, group_value, len);
-                current.group[len] = '\0';
-                has_group = 1;
-            }
-        }
-        
-        if (strstr(line, "GRADES:") && !has_grades) {
-            if (extract_grades(line, current.grades)) {
-                has_grades = 1;
+        } else {
+            if (strncmp(line, "ID:", 3) == 0 && !has_id) {
+                char* value_start = line + 3;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* endptr;
+                errno = 0;
+                double id_d = strtod(value_start, &endptr);
+                
+                if (errno == 0 && endptr != value_start && id_d >= 0) {
+                    current.id = (unsigned int)id_d;
+                    has_id = 1;
+                }
+            } 
+            else if (strncmp(line, "NAME:", 5) == 0 && !has_name) {
+                char* value_start = line + 5;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.name, value_start, len);
+                    current.name[len] = '\0';
+                    if (is_latin_string(current.name)) {
+                        has_name = 1;
+                        valid_name = 1;
+                    } else {
+                        has_name = 0;
+                        valid_name = 0;
+                    }
+                }
+            } 
+            else if (strncmp(line, "SURNAME:", 8) == 0 && !has_surname) {
+                char* value_start = line + 8;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.surname, value_start, len);
+                    current.surname[len] = '\0';
+                    if (is_latin_string(current.surname)) {
+                        has_surname = 1;
+                        valid_surname = 1;
+                    } else {
+                        has_surname = 0;
+                        valid_surname = 0;
+                    }
+                }
+            } 
+            else if (strncmp(line, "GROUP:", 6) == 0 && !has_group) {
+                char* value_start = line + 6;
+                while (*value_start && (isspace(*value_start) || *value_start == ',' || *value_start == ';')) {
+                    value_start++;
+                }
+                
+                char* end = value_start;
+                while (*end && !isspace(*end) && *end != ',' && *end != ';') {
+                    end++;
+                }
+                int len = end - value_start;
+                if (len > 0 && len < MAX_NAME_LENGTH) {
+                    strncpy(current.group, value_start, len);
+                    current.group[len] = '\0';
+                    has_group = 1;
+                }
+            } 
+            else if (strncmp(line, "GRADES:", 7) == 0 && !has_grades) {
+                if (extract_grades(line, current.grades)) {
+                    has_grades = 1;
+                }
             }
         }
     }
     
-    if (has_id && has_name && has_surname && has_group && has_grades) {
+    if (has_id && has_name && has_surname && has_group && has_grades && 
+        valid_name && valid_surname) {
         if (count >= capacity) {
             capacity += 1;
             Student* temp = realloc(*students, capacity * sizeof(Student));

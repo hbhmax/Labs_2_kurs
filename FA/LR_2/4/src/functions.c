@@ -198,7 +198,8 @@ int overfscanf(FILE *stream, const char *format, ...) {
                 case 'd': case 'i': count += fscanf(stream, spec, va_arg(args, int*)); break;
                 case 'u': count += fscanf(stream, spec, va_arg(args, unsigned int*)); break;
                 case 'o': count += fscanf(stream, spec, va_arg(args, unsigned int*)); break;
-                case 'x': case 'X': count += fscanf(stream, spec, va_arg(args, unsigned int*)); break;
+                case 'x': count += fscanf(stream, spec, va_arg(args, unsigned int*)); break;
+                case 'X': count += fscanf(stream, spec, va_arg(args, unsigned int*)); break;
                 case 'f': count += fscanf(stream, spec, va_arg(args, double*)); break;
                 case 'c': count += fscanf(stream, spec, va_arg(args, char*)); break;
                 case 's': count += fscanf(stream, spec, va_arg(args, char*)); break;

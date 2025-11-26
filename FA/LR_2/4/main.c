@@ -7,14 +7,15 @@ int main() {
     unsigned int num2;
     int num3;
     int num4;
+    int c1;
 
-    oversscanf("XX6", "%Ro%d", &num1, &num2);
-    printf("Roman: %d            %d\n", num1, num2);
+    oversscanf("XX6", "%Ro%d", &num1, &c1);
+    printf("Roman: %d            %d\n", num1, c1);
 
     oversscanf("10100011", "%Zr", &num2);
     printf("Zeckendorf: %u\n", num2);
 
-    oversscanf("1a", "%Cv %d", &num3, 16);
+    oversscanf("1a", "%Cv", &num3, 16);
     printf("Base (lower): %d\n", num3);
 
     oversscanf("1A", "%CV", &num4, 16);

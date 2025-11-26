@@ -7,8 +7,8 @@ GROUP: GsfJ-211-s
 GRADES: [5, 7, 5, 3, 4]
 
 ID: 43
-SURNAME: NYdasd1
-NAME: PO
+SURNAME: Aaaa
+NAME: ggg
 GRADES: [5, 7, 5, 3, 4]
 GROUP: GsfJ-211-s
 
