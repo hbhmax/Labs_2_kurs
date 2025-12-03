@@ -134,7 +134,7 @@ void log_operation(FILE *log_file, int line_num, const char *command, const char
 
     int first = 1;
     for (int i = 0; i < VAR_COUNT; i++) {
-        if (variables[i] != 0 || first) { // Выводим хотя бы одну переменную
+        if (variables[i] != 0 || first) {
             if (!first) fprintf(log_file, ", ");
             fprintf(log_file, "%c=%d", 'A' + i, variables[i]);
             first = 0;
